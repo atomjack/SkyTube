@@ -73,6 +73,6 @@ dependencies {
     extraCompile 'com.android.support:mediarouter-v7:25.0.0'
     extraCompile 'com.google.android.gms:play-services-cast-framework:9.4.0'
     extraCompile 'com.googlecode.android-query:android-query:0.25.9'
-    extraCompile 'com.sothree.slidinguppanel:library:3.3.1'
+//    extraCompile 'com.sothree.slidinguppanel:library:3.3.1'
     extraCompile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
 }

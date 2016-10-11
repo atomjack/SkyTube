@@ -1,1 +1,2 @@
-include ':app'
+include ':app', ':panel'
+project(':panel').projectDir = new File('AndroidSlidingUpPanel/library')
