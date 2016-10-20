@@ -35,11 +35,10 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 
 import free.rm.skytube.R;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.VideoCategory;
 import free.rm.skytube.businessobjects.YouTubeChannel;
 import free.rm.skytube.businessobjects.db.SubscribeToChannelTask;
-import free.rm.skytube.gui.businessobjects.FragmentEx;
+import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 import free.rm.skytube.gui.businessobjects.LoadingProgressBar;
 import free.rm.skytube.gui.businessobjects.SubsAdapter;
 import free.rm.skytube.gui.businessobjects.SubscribeButton;
@@ -48,13 +47,12 @@ import free.rm.skytube.gui.businessobjects.VideoGridAdapter;
 /**
  * A Fragment that displays information about a channel.
  */
-public class ChannelBrowserFragment extends FragmentEx {
+public class ChannelBrowserFragment extends BaseVideosGridFragment {
 
 	public static final String CHANNEL_OBJ = "ChannelBrowserFragment.ChannelObj";
 	public static final String CHANNEL_ID = "ChannelBrowserFragment.ChannelID";
 	private YouTubeChannel	channel = null;
 	private RecyclerView	gridView;
-	private VideoGridAdapter videoGridAdapter;
 
 	private ImageView 			channelThumbnailImage = null;
 	private ImageView			channelBannerImage = null;

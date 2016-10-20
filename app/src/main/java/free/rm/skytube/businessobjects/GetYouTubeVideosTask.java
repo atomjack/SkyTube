@@ -41,6 +41,12 @@ public class GetYouTubeVideosTask extends AsyncTaskParallel<Void, Void, List<You
 	/** Optional non-static progressBar. If this isn't set, a static one will be used */
 	private View progressBar = null;
 
+	/** Whether or not to skip showing the progress bar. */
+	private boolean skipProgressBar = false;
+
+	/** Runnable to be run when this task completes */
+	private Runnable onFinished;
+
 
 	public GetYouTubeVideosTask(GetYouTubeVideos getYouTubeVideos, VideoGridAdapter videoGridAdapter, View progressBar) {
 		this.getYouTubeVideos = getYouTubeVideos;
@@ -48,13 +54,22 @@ public class GetYouTubeVideosTask extends AsyncTaskParallel<Void, Void, List<You
 		this.progressBar = progressBar;
 	}
 
+	public GetYouTubeVideosTask(GetYouTubeVideos getYouTubeVideos, VideoGridAdapter videoGridAdapter, Runnable onFinished) {
+		this.getYouTubeVideos = getYouTubeVideos;
+		this.videoGridAdapter = videoGridAdapter;
+		skipProgressBar = true;
+		this.onFinished = onFinished;
+	}
+
 
 	@Override
 	protected void onPreExecute() {
-		if(progressBar != null)
-			progressBar.setVisibility(View.VISIBLE);
-		else
-			LoadingProgressBar.get().show();
+		if(!skipProgressBar) {
+			if (progressBar != null)
+				progressBar.setVisibility(View.VISIBLE);
+			else
+				LoadingProgressBar.get().show();
+		}
 	}
 
 	@Override
@@ -72,10 +87,14 @@ public class GetYouTubeVideosTask extends AsyncTaskParallel<Void, Void, List<You
 	@Override
 	protected void onPostExecute(List<YouTubeVideo> videosList) {
 		videoGridAdapter.appendList(videosList);
-		if(progressBar != null)
-			progressBar.setVisibility(View.GONE);
-		else
-			LoadingProgressBar.get().hide();
+		if(!skipProgressBar) {
+			if (progressBar != null)
+				progressBar.setVisibility(View.GONE);
+			else
+				LoadingProgressBar.get().hide();
+		}
+		if(onFinished != null)
+			onFinished.run();
 	}
 
 

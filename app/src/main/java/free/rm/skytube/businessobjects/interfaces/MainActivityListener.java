@@ -1,4 +1,6 @@
-package free.rm.skytube.businessobjects;
+package free.rm.skytube.businessobjects.interfaces;
+
+import free.rm.skytube.businessobjects.YouTubeChannel;
 
 public interface MainActivityListener {
   void onChannelClick(String channelId);

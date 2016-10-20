@@ -29,9 +29,9 @@ import java.io.IOException;
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.GetYouTubeVideos;
 import free.rm.skytube.businessobjects.GetYouTubeVideosTask;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.VideoCategory;
 import free.rm.skytube.businessobjects.YouTubeVideo;
+import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 
 /**
  * An adapter that will display videos in a {@link android.widget.GridView}.
@@ -129,6 +129,15 @@ public class VideoGridAdapter extends RecyclerViewAdapterEx<YouTubeVideo, GridVi
 					Toast.LENGTH_LONG).show();
 			this.currentVideoCategory = null;
 		}
+	}
+
+	/**
+	 * Refresh the video grid, by running the task to get the videos again.
+	 *
+	 * @param onFinished Runnable to run when the task completes.
+	 */
+	public void refresh(Runnable onFinished) {
+		new GetYouTubeVideosTask(getYouTubeVideos, this, onFinished).executeInParallel();
 	}
 
 

@@ -28,7 +28,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.util.Pair;
@@ -50,7 +49,6 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.AsyncTaskParallel;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.YouTubeChannel;
 import free.rm.skytube.gui.businessobjects.UpdatesChecker;
 import free.rm.skytube.gui.businessobjects.WebStream;
@@ -61,7 +59,7 @@ import free.rm.skytube.gui.fragments.SearchVideoGridFragment;
 /**
  * Main activity (launcher).  This activity holds {@link free.rm.skytube.gui.fragments.VideosGridFragment}.
  */
-public class MainActivity extends AppCompatActivity implements MainActivityListener {
+public class MainActivity extends BaseActivity {
 	public static final String ACTION_VIEW_CHANNEL = "MainActivity.ViewChannel";
 	public static final String MAIN_FRAGMENT = "MainActivity.MainFragment";
 	public static final String CHANNEL_BROWSER_FRAGMENT = "MainActivity.ChannelBrowserFragment";
@@ -86,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 			new UpdatesCheckerTask().executeInParallel();
 
 		setContentView(R.layout.activity_main);
+		onLayoutSet();
 		ButterKnife.bind(this);
 
 		if(fragmentContainer != null) {
@@ -120,8 +119,11 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 
 	@Override
 	public boolean onCreateOptionsMenu(final Menu menu) {
+		super.onCreateOptionsMenu(menu);
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.main_activity_menu, menu);
+
+		onOptionsMenuCreated(menu);
 
 		// setup the SearchView (actionbar)
 		final MenuItem searchItem = menu.findItem(R.id.menu_search);
