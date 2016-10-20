@@ -63,7 +63,7 @@ import free.rm.skytube.businessobjects.interfaces.GetVideoDetailsListener;
 import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 import free.rm.skytube.gui.app.SkyTubeApp;
 import free.rm.skytube.gui.businessobjects.Logger;
-import free.rm.skytube.gui.fragments.ChromecastControllerFragment;
+import free.rm.skytube.gui.fragments.ChromecastMiniControllerFragment;
 
 public abstract class BaseActivity extends AppCompatActivity implements MainActivityListener, ChromecastListener {
 	public static final String KEY_PUBLISH_DATE = "publishDate";
@@ -79,7 +79,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	private SessionManager mSessionManager;
 	private final SessionManagerListener mSessionManagerListener =
 					new SessionManagerListenerImpl();
-	public ChromecastControllerFragment chromecastControllerFragment;
+	public ChromecastMiniControllerFragment chromecastMiniControllerFragment;
 
 	private MediaRouter mediaRouter;
 	private MediaRouteSelector mediaRouteSelector;
@@ -207,7 +207,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 		mCastSession = mSessionManager.getCurrentCastSession();
 		mSessionManager.addSessionManagerListener(mSessionManagerListener);
 		if(mCastSession != null && mCastSession.getRemoteMediaClient() != null && mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
-			chromecastControllerFragment.init(mCastSession.getRemoteMediaClient());
+			chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
 			showPanel();
 		}
 		super.onResume();
@@ -273,7 +273,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 		public void onSessionResumed(Session session, boolean wasSuspended) {
 			mCastSession = CastContext.getSharedInstance(BaseActivity.this).getSessionManager().getCurrentCastSession();
 			if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
-				chromecastControllerFragment.init(mCastSession.getRemoteMediaClient());
+				chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
 			}
 			invalidateOptionsMenu();
 			SkyTubeApp.getInstance().connectedToChromecast = true;
@@ -320,7 +320,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	protected void onLayoutSet() {
 		ButterKnife.bind(this);
 		slidingLayout.setTouchEnabled(false);
-		chromecastControllerFragment = (ChromecastControllerFragment)getSupportFragmentManager().findFragmentById(R.id.chromecastMiniControllerFragment);
+		chromecastMiniControllerFragment = (ChromecastMiniControllerFragment)getSupportFragmentManager().findFragmentById(R.id.chromecastMiniControllerFragment);
 	}
 
 	/**
@@ -399,7 +399,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 									.build();
 
 					remoteMediaClient.load(currentPlayingMedia, true, 0);
-					chromecastControllerFragment.init(remoteMediaClient, currentPlayingMedia, position);
+					chromecastMiniControllerFragment.init(remoteMediaClient, currentPlayingMedia, position);
 					// If the Controller panel isn't visible, setting the progress of the progressbar in the mini controller won't
 					// work until the panel is visible, so do it as soon as the sliding panel is visible. Adding this listener when
 					// the panel is not hidden will lead to a java.util.ConcurrentModificationException the next time a video is
@@ -414,7 +414,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 							@Override
 							public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
 								if (newState == SlidingUpPanelLayout.PanelState.COLLAPSED) {
-									chromecastControllerFragment.setProgress(position);
+									chromecastMiniControllerFragment.setProgress(position);
 									slidingLayout.removePanelSlideListener(this);
 								}
 							}

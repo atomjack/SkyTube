@@ -41,6 +41,12 @@
 		<fragment
 			android:id="@+id/chromecastMiniControllerFragment"
 			android:layout_width="match_parent"
+			android:layout_height="@dimen/chromecast_panel_height"
+			class="free.rm.skytube.gui.fragments.ChromecastMiniControllerFragment" />
+
+		<fragment
+			android:id="@+id/chromecastControllerFragment"
+			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			class="free.rm.skytube.gui.fragments.ChromecastControllerFragment" />
 
