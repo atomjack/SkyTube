@@ -9,8 +9,6 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,22 +22,19 @@ import android.widget.VideoView;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.AsyncTaskParallel;
-import free.rm.skytube.businessobjects.GetVideoDescription;
-import free.rm.skytube.businessobjects.GetVideosDetailsByIDs;
+import free.rm.skytube.businessobjects.GetVideoDescriptionTask;
+import free.rm.skytube.businessobjects.GetVideoDetailsTask;
 import free.rm.skytube.businessobjects.VideoStream.StreamMetaData;
-import free.rm.skytube.businessobjects.VideoStream.StreamMetaDataList;
 import free.rm.skytube.businessobjects.YouTubeChannel;
 import free.rm.skytube.businessobjects.YouTubeVideo;
 import free.rm.skytube.businessobjects.db.CheckIfUserSubbedToChannelTask;
 import free.rm.skytube.businessobjects.db.SubscribeToChannelTask;
+import free.rm.skytube.businessobjects.interfaces.GetDesiredStreamListener;
+import free.rm.skytube.businessobjects.interfaces.GetVideoDetailsListener;
 import free.rm.skytube.gui.activities.MainActivity;
-import free.rm.skytube.gui.app.SkyTubeApp;
 import free.rm.skytube.gui.businessobjects.CommentsAdapter;
 import free.rm.skytube.gui.businessobjects.FragmentEx;
 import free.rm.skytube.gui.businessobjects.MediaControllerEx;
@@ -173,7 +168,7 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 				getVideoInfoTasks();
 			} else {
 				// ... or the video URL is passed to SkyTube via another Android app
-				GetVideoDetailsTask getVideoDetailsTask = new GetVideoDetailsTask();
+				GetVideoDetailsTask getVideoDetailsTask = new GetVideoDetailsTask(getActivity().getIntent(), getVideoDetailsListener);
 				getVideoDetailsTask.executeInParallel();
 			}
 		}
@@ -181,6 +176,7 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 		return view;
 	}
 
+<<<<<<< HEAD
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
@@ -190,6 +186,8 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 
 
 
+=======
+>>>>>>> Added Chromecast support.
 	private void getVideoInfoTasks() {
 		// get Channel info (e.g. avatar...etc) task
 		new GetYouTubeChannelInfoTask().executeInParallel(youTubeVideo.getChannelId());
@@ -316,12 +314,6 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 		}
 	}
 
-
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.menu_youtube_player, menu);
-	}
-
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -343,54 +335,14 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 	 * Loads the video specified in {@link #youTubeVideo}.
 	 */
 	private void loadVideo() {
-		// get the video's steam
-		new GetStreamTask(youTubeVideo, true).executeInParallel();
-		// get the video description
-		new GetVideoDescriptionTask().executeInParallel();
-	}
+		boolean isVideoPlaying = videoView.isPlaying();
 
+		videoView.pause();
+		final int currentVideoPosition = isVideoPlaying ? videoView.getCurrentPosition() : 0;
+		videoView.stopPlayback();
+		loadingVideoView.setVisibility(View.VISIBLE);
 
-	////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	/**
-	 * Given a YouTubeVideo, it will asynchronously get a list of streams (supplied by YouTube) and
-	 * then it asks the videoView to start playing a stream.
-	 */
-	private class GetStreamTask extends AsyncTaskParallel<Void, Exception, StreamMetaDataList> {
-
-		/** YouTube Video */
-		private YouTubeVideo	youTubeVideo;
-		/** The current video position (i.e. time).  Set to -1 if we are not interested in reloading
-		 *  the video. */
-		private	int				currentVideoPosition = -1;
-
-
-		public GetStreamTask(YouTubeVideo youTubeVideo) {
-			this(youTubeVideo, false);
-		}
-
-		/**
-		 * Returns a stream for the given video.  If reloadVideo is set to true, then it will stop
-		 * the current video, get a NEW stream and then resume playing.
-		 *
-		 * @param youTubeVideo	YouTube video
-		 * @param reloadVideo	Set to true to reload a video
-		 */
-		public GetStreamTask(YouTubeVideo youTubeVideo, boolean reloadVideo) {
-			this.youTubeVideo = youTubeVideo;
-
-			if (reloadVideo) {
-				boolean isVideoPlaying = videoView.isPlaying();
-
-				videoView.pause();
-				this.currentVideoPosition = isVideoPlaying ? videoView.getCurrentPosition() : 0;
-				videoView.stopPlayback();
-				loadingVideoView.setVisibility(View.VISIBLE);
-			}
-		}
-
-
+<<<<<<< HEAD
 		@Override
 		protected StreamMetaDataList doInBackground(Void... param) {
 			return youTubeVideo.getVideoStreamList();
@@ -413,6 +365,11 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 				// get the desired stream based on user preferences
 				StreamMetaData desiredStream = streamMetaDataList.getDesiredStream();
 
+=======
+		youTubeVideo.getDesiredStream(new GetDesiredStreamListener() {
+			@Override
+			public void onGetDesiredStream(StreamMetaData desiredStream) {
+>>>>>>> Added Chromecast support.
 				// play the video
 				Log.i(TAG, ">> PLAYING: " + desiredStream);
 				videoView.setVideoURI(desiredStream.getUri());
@@ -422,6 +379,7 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 					videoView.seekTo(currentVideoPosition);
 				}
 			}
+<<<<<<< HEAD
 
 			if (errorMessage != null) {
 				new AlertDialog.Builder(getContext())
@@ -438,138 +396,48 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 			}
 		}
 	}
+=======
+>>>>>>> Added Chromecast support.
 
-	////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	/**
-	 * Get the video's description and set the appropriate text view.
-	 */
-	private class GetVideoDescriptionTask extends AsyncTaskParallel<Void, Void, String> {
-
-		@Override
-		protected String doInBackground(Void... params) {
-			GetVideoDescription getVideoDescription = new GetVideoDescription();
-			String description = SkyTubeApp.getStr(R.string.error_get_video_desc);
-
-			try {
-				getVideoDescription.init(youTubeVideo.getId());
-				List<YouTubeVideo> list = getVideoDescription.getNextVideos();
-
-				if (list.size() > 0) {
-					description = list.get(0).getDescription();
-				}
-			} catch (IOException e) {
-				Log.e(TAG, description + " - id=" + youTubeVideo.getId(), e);
+			@Override
+			public void onGetDesiredStreamError() {
+				Toast.makeText(YouTubePlayerFragment.this.getActivity(),
+								String.format(getActivity().getString(R.string.error_get_video_streams), youTubeVideo.getId()),
+								Toast.LENGTH_LONG).show();
 			}
-
-			return description;
-		}
-
-		@Override
-		protected void onPostExecute(String description) {
-			videoDescriptionTextView.setText(description);
-		}
-
+		});
+		// get the video description
+		new GetVideoDescriptionTask(youTubeVideo, new GetVideoDescriptionTask.GetVideoDescriptionTaskListener() {
+			@Override
+			public void onFinished(String description) {
+				videoDescriptionTextView.setText(description);
+			}
+		}).executeInParallel();
 	}
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-	/**
-	 * This task will, from the given video URL, get the details of the video (e.g. video name,
-	 * likes ...etc).
-	 */
-	private class GetVideoDetailsTask extends AsyncTaskParallel<Void, Void, YouTubeVideo> {
+	////////////////////////////////////////////////////////////////////////////////////////////////
 
-		private String videoUrl = null;
+	private GetVideoDetailsListener getVideoDetailsListener = new GetVideoDetailsListener() {
+		@Override
+		public void onSuccess(YouTubeVideo video) {
+			YouTubePlayerFragment.this.youTubeVideo = video;
+			setUpHUDAndPlayVideo();	// setup the HUD and play the video
 
+			getVideoInfoTasks();
+		}
 
 		@Override
-		protected void onPreExecute() {
-			videoUrl = getUrlFromIntent(getActivity().getIntent());
+		public void onFailure(String videoUrl) {
+			String err = String.format(getString(R.string.error_invalid_url), videoUrl);
+			Toast.makeText(getActivity(), err, Toast.LENGTH_LONG).show();
+			Log.e(TAG, err);
+			getActivity().finish();
 		}
-
-
-		/**
-		 * Returns an instance of {@link YouTubeVideo} from the given {@link #videoUrl}.
-		 *
-		 * @return {@link YouTubeVideo}; null if an error has occurred.
-		 */
-		@Override
-		protected YouTubeVideo doInBackground(Void... params) {
-			String videoId = getYouTubeIdFromUrl(videoUrl);
-			YouTubeVideo youTubeVideo = null;
-
-			if (videoId != null) {
-				try {
-					GetVideosDetailsByIDs getVideo = new GetVideosDetailsByIDs();
-					getVideo.init(videoId);
-					List<YouTubeVideo> youTubeVideos = getVideo.getNextVideos();
-
-					if (youTubeVideos.size() > 0)
-						youTubeVideo = youTubeVideos.get(0);
-				} catch (IOException ex) {
-					Log.e(TAG, "Unable to get video details, where id="+videoId, ex);
-				}
-			}
-
-			return youTubeVideo;
-		}
-
-
-		@Override
-		protected void onPostExecute(YouTubeVideo youTubeVideo) {
-			if (youTubeVideo == null) {
-				String err = String.format(getString(R.string.error_invalid_url), videoUrl);
-				Toast.makeText(getActivity(), err, Toast.LENGTH_LONG).show();
-				Log.e(TAG, err);
-				getActivity().finish();
-			} else {
-				YouTubePlayerFragment.this.youTubeVideo = youTubeVideo;
-				setUpHUDAndPlayVideo();	// setup the HUD and play the video
-
-				getVideoInfoTasks();
-			}
-		}
-
-
-		/**
-		 * The video URL is passed to SkyTube via another Android app (i.e. via an intent).
-		 *
-		 * @return The URL of the YouTube video the user wants to play.
-		 */
-		private String getUrlFromIntent(final Intent intent) {
-			String url = null;
-
-			if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
-				url = intent.getData().toString();
-			}
-
-			return url;
-		}
-
-
-		/**
-		 * Extracts the video ID from the given video URL.
-		 *
-		 * @param url	YouTube video URL.
-		 * @return ID if everything went as planned; null otherwise.
-		 */
-		private String getYouTubeIdFromUrl(String url) {
-			if (url == null)
-				return null;
-
-			final String pattern = "(?<=v=|/videos/|embed/|youtu\\.be/|/v/|/e/)[^#&\\?]*";
-			Pattern compiledPattern = Pattern.compile(pattern);
-			Matcher matcher = compiledPattern.matcher(url);
-
-			return matcher.find() ? matcher.group() /*video id*/ : null;
-		}
-
-	}
-
+	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -606,4 +474,16 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 
 	}
 
+
+	public YouTubeVideo getYouTubeVideo() {
+		return youTubeVideo;
+	}
+
+	public int getCurrentVideoPosition() {
+		return videoView.getCurrentPosition();
+	}
+
+	public void pause() {
+		videoView.pause();
+	}
 }

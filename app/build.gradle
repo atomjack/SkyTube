@@ -9,12 +9,18 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 3
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
         buildConfigField 'String', 'YOUTUBE_API_KEY', '"AIzaSyDAOcAgAAd098p_FLIePaQNKPTpcyhUGBA"';
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "CHROMECAST_APP_ID", "\"39E8D587\""
+        }
+        debug {
+            buildConfigField "String", "CHROMECAST_APP_ID", "\"29A66E17\""
         }
     }
     productFlavors {
@@ -31,10 +37,14 @@ android {
             resValue "string", "app_name", "SkyTube Extra"
         }
     }
+    dexOptions {
+        jumboMode true
+    }
 }
 
 configurations {
     nonFreeCompile
+    compile.exclude group: "org.apache.httpcomponents", module: "httpclient"
 }
 
 dependencies {
@@ -54,4 +64,17 @@ dependencies {
 
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.android.support:design:25.0.0'
+
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:design:24.2.0'
+    compile 'com.android.support:multidex:1.0.0'
+
+    compile group: 'joda-time', name: 'joda-time', version: '2.3'
+
+    nonFreeCompile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
+    nonFreeCompile 'com.android.support:mediarouter-v7:24.2.1'
+    nonFreeCompile 'com.google.android.gms:play-services-cast-framework:9.4.0'
+    nonFreeCompile 'com.googlecode.android-query:android-query:0.25.9'
+    nonFreeCompile 'com.sothree.slidinguppanel:library:3.3.1'
+    nonFreeCompile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
 }

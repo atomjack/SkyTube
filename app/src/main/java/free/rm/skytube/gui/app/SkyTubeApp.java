@@ -17,22 +17,29 @@
 
 package free.rm.skytube.gui.app;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.multidex.MultiDex;
+import android.support.multidex.MultiDexApplication;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import free.rm.skytube.businessobjects.db.SubscriptionsDb;
 
 /**
  * SkyTube application.
  */
-public class SkyTubeApp extends Application {
+public class SkyTubeApp extends MultiDexApplication {
 
 	/** SkyTube Application instance. */
-	private static SkyTubeApp skyTubeApp = null;
+	protected static SkyTubeApp skyTubeApp = null;
 	private static volatile SubscriptionsDb subscriptionsDb = null;
 
+	public boolean connectedToChromecast = false;
+	public boolean connectingToChromecast = false;
+	public Map<String, String> chromecastDevices = new HashMap<>();
 
 	@Override
 	public void onCreate() {
@@ -40,6 +47,9 @@ public class SkyTubeApp extends Application {
 		skyTubeApp = this;
 	}
 
+	public static SkyTubeApp getInstance() {
+		return skyTubeApp;
+	}
 
 	/**
 	 * Returns a localised string.
@@ -77,4 +87,9 @@ public class SkyTubeApp extends Application {
 		return skyTubeApp.getBaseContext();
 	}
 
+	@Override
+	protected void attachBaseContext(Context base) {
+		super.attachBaseContext(base);
+		MultiDex.install(this);
+	}
 }
