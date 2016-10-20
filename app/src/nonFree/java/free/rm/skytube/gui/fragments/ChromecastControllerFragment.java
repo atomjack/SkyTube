@@ -75,11 +75,15 @@ public class ChromecastControllerFragment extends FragmentEx {
 		remoteMediaClient = client;
 		currentPlayingMedia = media;
 		currentPlayerState = remoteMediaClient.getPlayerState();
+
+		videoTitle.setText(currentPlayingMedia.getMetadata().getString(MediaMetadata.KEY_TITLE));
+		channelName.setText(currentPlayingMedia.getMetadata().getString(MediaMetadata.KEY_SUBTITLE));
+
 		// We just either started playback of a video, or resumed the cast session. In the latter case, if there's a video playing, let the activity
 		// know so that the panel will appear.
 		if(currentPlayerState != MediaStatus.PLAYER_STATE_IDLE) {
 			mediaListener.onMetadataUpdated();
-			updateUI();
+			updateButtons();
 			activityListener.onPlayStarted();
 		}
 		remoteMediaClient.addListener(mediaListener);
@@ -115,7 +119,7 @@ public class ChromecastControllerFragment extends FragmentEx {
 				return;
 			}
 
-			updateUI();
+			updateButtons();
 
 			if(isSeeking) {
 				isSeeking = false;
@@ -137,13 +141,8 @@ public class ChromecastControllerFragment extends FragmentEx {
 			}
 		}
 
-		/**
-		 * The video metadata has changed, so update the video title and channel name fields in the UI
-		 */
 		@Override
 		public void onMetadataUpdated() {
-			videoTitle.setText(currentPlayingMedia.getMetadata().getString(MediaMetadata.KEY_TITLE));
-			channelName.setText(currentPlayingMedia.getMetadata().getString(MediaMetadata.KEY_SUBTITLE));
 		}
 
 		@Override
@@ -191,7 +190,7 @@ public class ChromecastControllerFragment extends FragmentEx {
 	/**
 	 * Change the visibility of the play/pause/buffering buttons depending on the current playback state.
 	 */
-	private void updateUI() {
+	private void updateButtons() {
 		if(currentPlayerState == MediaStatus.PLAYER_STATE_PLAYING) {
 			playButton.setVisibility(View.GONE);
 			pauseButton.setVisibility(View.VISIBLE);
