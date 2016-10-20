@@ -130,14 +130,7 @@ public class ChromecastControllerFragment extends FragmentEx {
 				 * If the video is under 100 seconds long, it will update every second. If the video is over 16.6 minutes
 				 * long, it will update every 10 seconds. Inbetween those, it will update in exactly 100 steps.
 				 */
-				chromecastPlaybackProgressBar.setMax((int)remoteMediaClient.getStreamDuration());
-				long period = remoteMediaClient.getStreamDuration() / 100;
-				if(period < 1000)
-					period = 1000;
-				if(period > 10000)
-					period = 10000;
-				remoteMediaClient.removeProgressListener(progressBarUpdater);
-				remoteMediaClient.addProgressListener(progressBarUpdater, period);
+				setProgressBarUpdater();
 				activityListener.onPlayStarted();
 			}
 		}
@@ -166,6 +159,33 @@ public class ChromecastControllerFragment extends FragmentEx {
 
 		}
 	};
+
+	private void setProgressBarUpdater() {
+		chromecastPlaybackProgressBar.setMax((int)remoteMediaClient.getStreamDuration());
+		long period = remoteMediaClient.getStreamDuration() / 100;
+		if(period < 1000)
+			period = 1000;
+		if(period > 10000)
+			period = 10000;
+		remoteMediaClient.removeProgressListener(progressBarUpdater);
+		remoteMediaClient.addProgressListener(progressBarUpdater, period);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if(remoteMediaClient != null) {
+			setProgressBarUpdater();
+			chromecastPlaybackProgressBar.setProgress((int)remoteMediaClient.getApproximateStreamPosition());
+		}
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		if(remoteMediaClient != null)
+			remoteMediaClient.removeProgressListener(progressBarUpdater);
+	}
 
 	/**
 	 * Change the visibility of the play/pause/buffering buttons depending on the current playback state.
