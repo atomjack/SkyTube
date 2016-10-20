@@ -83,7 +83,7 @@ public class ChromecastControllerFragment extends FragmentEx {
 			activityListener.onPlayStarted();
 		}
 		remoteMediaClient.addListener(mediaListener);
-		chromecastPlaybackProgressBar.setMax((int)remoteMediaClient.getStreamDuration());
+		setProgressBarUpdater();
 		chromecastPlaybackProgressBar.setProgress(position);
 	}
 
@@ -94,6 +94,8 @@ public class ChromecastControllerFragment extends FragmentEx {
 	RemoteMediaClient.ProgressListener progressBarUpdater = new RemoteMediaClient.ProgressListener() {
 		@Override
 		public void onProgressUpdated(long progress, long duration) {
+			if(chromecastPlaybackProgressBar.getMax() != duration)
+				chromecastPlaybackProgressBar.setMax((int)duration);
 			chromecastPlaybackProgressBar.setProgress((int)progress);
 		}
 	};
@@ -161,7 +163,6 @@ public class ChromecastControllerFragment extends FragmentEx {
 	};
 
 	private void setProgressBarUpdater() {
-		chromecastPlaybackProgressBar.setMax((int)remoteMediaClient.getStreamDuration());
 		long period = remoteMediaClient.getStreamDuration() / 100;
 		if(period < 1000)
 			period = 1000;
