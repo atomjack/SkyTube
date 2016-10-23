@@ -296,6 +296,10 @@ public class YouTubeVideo implements Serializable {
 		return thumbnailUrl;
 	}
 
+	public String getVideoUrl() {
+		return String.format("https://youtu.be/%s", id);
+	}
+
 	public String getLanguage() {
 		return language;
 	}

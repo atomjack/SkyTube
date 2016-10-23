@@ -15,6 +15,7 @@ import java.util.List;
 
 import free.rm.skytube.BuildConfig;
 import free.rm.skytube.gui.activities.MainActivity;
+import free.rm.skytube.gui.activities.NotificationClickActivity;
 
 public class CastOptionsProvider implements OptionsProvider {
 	@Override
@@ -28,11 +29,11 @@ public class CastOptionsProvider implements OptionsProvider {
 		int[] compatButtonActionsIndicies = new int[]{ 1, 3 };
 		// Builds a notification with the above actions. Each tap on the "rewind" and
 		// "forward" buttons skips 30 seconds.
-		// Tapping on the notification opens an Activity with class VideoBrowserActivity.
+		// Tapping on the notification opens an Activity with class MainActivity.
 		NotificationOptions notificationOptions = new NotificationOptions.Builder()
 						.setActions(buttonActions, compatButtonActionsIndicies)
 						.setSkipStepMs(30 * DateUtils.SECOND_IN_MILLIS)
-						.setTargetActivityClassName(MainActivity.class.getName())
+						.setTargetActivityClassName(NotificationClickActivity.class.getName())
 						.build();
 
 		CastMediaOptions mediaOptions = new CastMediaOptions.Builder()
