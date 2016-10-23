@@ -18,12 +18,14 @@
 package free.rm.skytube.gui.activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
@@ -423,8 +425,19 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 				}
 
 				@Override
-				public void onGetDesiredStreamError() {
-					Toast.makeText(BaseActivity.this, String.format(getString(R.string.error_get_video_streams), video.getId()), Toast.LENGTH_LONG).show();
+				public void onGetDesiredStreamError(String errorMessage) {
+					if (errorMessage != null) {
+						new AlertDialog.Builder(getApplicationContext())
+										.setMessage(errorMessage)
+										.setTitle(R.string.error_video_play)
+										.setCancelable(false)
+										.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+											@Override
+											public void onClick(DialogInterface dialog, int which) {
+											}
+										})
+										.show();
+					}
 				}
 			});
 		}

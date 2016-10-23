@@ -4,5 +4,5 @@ import free.rm.skytube.businessobjects.VideoStream.StreamMetaData;
 
 public interface GetDesiredStreamListener {
 	void onGetDesiredStream(StreamMetaData desiredStream);
-	void onGetDesiredStreamError();
+	void onGetDesiredStreamError(String errorMessage);
 }

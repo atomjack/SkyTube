@@ -367,7 +367,7 @@ public class YouTubeVideo implements Serializable {
 		@Override
 		protected void onPostExecute(StreamMetaDataList streamMetaDataList) {
 			if (streamMetaDataList == null || streamMetaDataList.size() <= 0) {
-				listener.onGetDesiredStreamError();
+				listener.onGetDesiredStreamError(streamMetaDataList.getErrorMessage());
 			} else {
 				Log.i(TAG, streamMetaDataList.toString());
 

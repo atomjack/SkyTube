@@ -176,18 +176,12 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 		return view;
 	}
 
-<<<<<<< HEAD
-
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putInt(VIDEO_CURRENT_POSITION, videoCurrentPosition);
 	}
 
-
-
-=======
->>>>>>> Added Chromecast support.
 	private void getVideoInfoTasks() {
 		// get Channel info (e.g. avatar...etc) task
 		new GetYouTubeChannelInfoTask().executeInParallel(youTubeVideo.getChannelId());
@@ -342,34 +336,9 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 		videoView.stopPlayback();
 		loadingVideoView.setVisibility(View.VISIBLE);
 
-<<<<<<< HEAD
-		@Override
-		protected StreamMetaDataList doInBackground(Void... param) {
-			return youTubeVideo.getVideoStreamList();
-		}
-
-
-		@Override
-		protected void onPostExecute(StreamMetaDataList streamMetaDataList) {
-			String errorMessage = null;
-
-			if (streamMetaDataList.getErrorMessage() != null) {
-				// if the stream list is null, then it means an error has occurred
-				errorMessage = streamMetaDataList.getErrorMessage();
-			} else if (streamMetaDataList.size() <= 0) {
-				// if steam list if empty, then it means something went wrong...
-				errorMessage = String.format(getActivity().getString(R.string.error_video_streams_empty), youTubeVideo.getId());
-			} else {
-				Log.i(TAG, streamMetaDataList.toString());
-
-				// get the desired stream based on user preferences
-				StreamMetaData desiredStream = streamMetaDataList.getDesiredStream();
-
-=======
 		youTubeVideo.getDesiredStream(new GetDesiredStreamListener() {
 			@Override
 			public void onGetDesiredStream(StreamMetaData desiredStream) {
->>>>>>> Added Chromecast support.
 				// play the video
 				Log.i(TAG, ">> PLAYING: " + desiredStream);
 				videoView.setVideoURI(desiredStream.getUri());
@@ -379,31 +348,22 @@ public class YouTubePlayerFragment extends FragmentEx implements MediaPlayer.OnP
 					videoView.seekTo(currentVideoPosition);
 				}
 			}
-<<<<<<< HEAD
 
-			if (errorMessage != null) {
-				new AlertDialog.Builder(getContext())
-					.setMessage(errorMessage)
-					.setTitle(R.string.error_video_play)
-					.setCancelable(false)
-					.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							getActivity().finish();
-						}
-					})
-					.show();
-			}
-		}
-	}
-=======
->>>>>>> Added Chromecast support.
-
-			@Override
-			public void onGetDesiredStreamError() {
-				Toast.makeText(YouTubePlayerFragment.this.getActivity(),
-								String.format(getActivity().getString(R.string.error_get_video_streams), youTubeVideo.getId()),
-								Toast.LENGTH_LONG).show();
+				@Override
+			public void onGetDesiredStreamError(String errorMessage) {
+				if (errorMessage != null) {
+					new AlertDialog.Builder(getContext())
+									.setMessage(errorMessage)
+									.setTitle(R.string.error_video_play)
+									.setCancelable(false)
+									.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+										@Override
+										public void onClick(DialogInterface dialog, int which) {
+											getActivity().finish();
+										}
+									})
+									.show();
+				}
 			}
 		});
 		// get the video description
