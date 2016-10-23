@@ -1,6 +1,5 @@
 package free.rm.skytube.gui.fragments;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -8,31 +7,39 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.google.android.gms.cast.MediaInfo;
-import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 import free.rm.skytube.R;
-import free.rm.skytube.businessobjects.ChromecastListener;
 import free.rm.skytube.gui.businessobjects.FragmentEx;
+import free.rm.skytube.gui.businessobjects.Logger;
 
-public class ChromecastMiniControllerFragment extends FragmentEx {
+public abstract class ChromecastBaseControllerFragment extends FragmentEx {
+	public static final String KEY_DURATION = "free.rm.skytube.KEY_DURATION";
+	public static final String KEY_CURRENT_POSITION = "free.rm.skytube.KEY_CURRENT_POSITION";
+
 	/** {@link com.google.android.gms.cast.MediaInfo} object that contains all the metadata for the currently playing video. */
-	private MediaInfo currentPlayingMedia;
+	protected MediaInfo currentPlayingMedia;
 	/** {@link RemoteMediaClient} representing the Chromecast this fragment controls. */
-	private RemoteMediaClient remoteMediaClient;
-	/** The {@link free.rm.skytube.businessobjects.ChromecastListener} Activity that will be notified when play has started and stopped */
-	private ChromecastListener activityListener;
-	/** The current playback state of the Chromecast */
-	private int currentPlayerState = MediaStatus.PLAYER_STATE_IDLE;
+	protected RemoteMediaClient remoteMediaClient;
 
-	private boolean isSeeking = false;
+	/** The current playback state of the Chromecast */
+	protected int currentPlayerState = MediaStatus.PLAYER_STATE_IDLE;
+
+	protected int duration = 0;
+	protected int currentPosition = 0;
+
+	protected boolean didSeek = false;
+	protected boolean isSeeking = false;
+
+	protected ChromecastBaseControllerFragment otherControllerFragment;
+
+	@Bind(R.id.chromecastPlaybackProgressBar)
+	ProgressBar chromecastPlaybackProgressBar;
 
 	/** Playback buttons */
 	@Bind(R.id.playButton)
@@ -41,29 +48,22 @@ public class ChromecastMiniControllerFragment extends FragmentEx {
 	ImageButton pauseButton;
 	@Bind(R.id.bufferingSpinner)
 	View bufferingSpinner;
-	@Bind(R.id.videoTitle)
-	TextView videoTitle;
-	@Bind(R.id.channelName)
-	TextView channelName;
-
-	@Bind(R.id.chromecastPlaybackProgressBar)
-	ProgressBar chromecastPlaybackProgressBar;
 
 	@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_chromecast_mini_controller, container);
-		ButterKnife.bind(this, view);
-		return view;
+		Logger.d("base onCreateView");
+		return super.onCreateView(inflater, container, savedInstanceState);
 	}
 
 	@Override
-	public void onAttach(Context context) {
-		super.onAttach(context);
-		try {
-			activityListener = (ChromecastListener)context;
-		} catch (ClassCastException e) {
-			throw new ClassCastException(context.toString() + " must implement ChromecastListener to use ChromecastMiniControllerFragment");
+	public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		if(savedInstanceState != null) {
+			int currentPosition = savedInstanceState.getInt(KEY_CURRENT_POSITION, 0);
+			int duration = savedInstanceState.getInt(KEY_DURATION, 0);
+			setDuration(duration);
+			setProgress(currentPosition);
 		}
 	}
 
@@ -76,33 +76,57 @@ public class ChromecastMiniControllerFragment extends FragmentEx {
 		currentPlayingMedia = media;
 		currentPlayerState = remoteMediaClient.getPlayerState();
 
-		videoTitle.setText(currentPlayingMedia.getMetadata().getString(MediaMetadata.KEY_TITLE));
-		channelName.setText(currentPlayingMedia.getMetadata().getString(MediaMetadata.KEY_SUBTITLE));
-
-		// We just either started playback of a video, or resumed the cast session. In the latter case, if there's a video playing, let the activity
-		// know so that the panel will appear.
 		if(currentPlayerState != MediaStatus.PLAYER_STATE_IDLE) {
 			mediaListener.onMetadataUpdated();
 			updateButtons();
-			activityListener.onPlayStarted();
 		}
 		remoteMediaClient.addListener(mediaListener);
 		setProgressBarUpdater();
-		chromecastPlaybackProgressBar.setProgress(position);
 	}
 
-	public void setProgress(int progress) {
-		chromecastPlaybackProgressBar.setProgress(progress);
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		if(remoteMediaClient != null) {
+			outState.putInt(KEY_CURRENT_POSITION, (int) remoteMediaClient.getApproximateStreamPosition());
+			outState.putInt(KEY_DURATION, (int) currentPlayingMedia.getStreamDuration());
+		}
+	}
+
+	public void setOtherControllerFragment(ChromecastBaseControllerFragment fragment) {
+		otherControllerFragment = fragment;
+	}
+
+	protected abstract long getProgressBarPeriod();
+
+	protected void setProgressBarUpdater() {
+		remoteMediaClient.removeProgressListener(progressBarUpdater);
+		remoteMediaClient.addProgressListener(progressBarUpdater, getProgressBarPeriod());
 	}
 
 	RemoteMediaClient.ProgressListener progressBarUpdater = new RemoteMediaClient.ProgressListener() {
 		@Override
 		public void onProgressUpdated(long progress, long duration) {
-			if(chromecastPlaybackProgressBar.getMax() != duration)
-				chromecastPlaybackProgressBar.setMax((int)duration);
-			chromecastPlaybackProgressBar.setProgress((int)progress);
+			if(chromecastPlaybackProgressBar.getMax() != duration) {
+				chromecastPlaybackProgressBar.setMax((int) duration);
+			}
+			if(!isSeeking) {
+				Logger.d("In updater, setting bar progress to %d", (int)remoteMediaClient.getApproximateStreamPosition());
+				chromecastPlaybackProgressBar.setProgress((int) progress);
+			}
 		}
 	};
+
+	protected void onPlayStopped() {}
+	protected void onPlayStarted() {}
+
+	public void setDuration(int duration) {
+		chromecastPlaybackProgressBar.setMax(duration);
+	}
+
+	public void setProgress(int progress) {
+		chromecastPlaybackProgressBar.setProgress(progress);
+	}
 
 	private RemoteMediaClient.Listener mediaListener = new RemoteMediaClient.Listener() {
 		@Override
@@ -113,31 +137,33 @@ public class ChromecastMiniControllerFragment extends FragmentEx {
 
 			/** If the new playback state is idle and it is because playback finished or was stopped, let the activity
 			 * know that playback has stopped.
- 			 */
+			 */
 			if(status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE && (status.getIdleReason() == MediaStatus.IDLE_REASON_FINISHED || status.getIdleReason() == MediaStatus.IDLE_REASON_CANCELED)) {
-				activityListener.onPlayStopped();
+				onPlayStopped();
 				return;
 			}
 
 			updateButtons();
 
-			if(isSeeking) {
-				isSeeking = false;
+			if(didSeek) {
+				didSeek = false;
+				Logger.d("In status updated, setting bar progress to %d", (int)remoteMediaClient.getApproximateStreamPosition());
 				chromecastPlaybackProgressBar.setProgress((int)remoteMediaClient.getApproximateStreamPosition());
+				if(otherControllerFragment != null)
+					otherControllerFragment.setProgress((int)remoteMediaClient.getApproximateStreamPosition());
 			}
 			/** If the previous playback state of the Chromecast was idle, and it is no longer idle, let the activity
 			 * know that playback has started.
 			 */
 			if (oldState == MediaStatus.PLAYER_STATE_IDLE && currentPlayerState != MediaStatus.PLAYER_STATE_IDLE) {
 				currentPlayingMedia = remoteMediaClient.getMediaInfo();
-
 				/**
 				 * Reset the ProgressBar with the new media, and add a progress listener to update the progress bar.
 				 * If the video is under 100 seconds long, it will update every second. If the video is over 16.6 minutes
 				 * long, it will update every 10 seconds. Inbetween those, it will update in exactly 100 steps.
 				 */
 				setProgressBarUpdater();
-				activityListener.onPlayStarted();
+				onPlayStarted();
 			}
 		}
 
@@ -161,36 +187,10 @@ public class ChromecastMiniControllerFragment extends FragmentEx {
 		}
 	};
 
-	private void setProgressBarUpdater() {
-		long period = remoteMediaClient.getStreamDuration() / 100;
-		if(period < 1000)
-			period = 1000;
-		if(period > 10000)
-			period = 10000;
-		remoteMediaClient.removeProgressListener(progressBarUpdater);
-		remoteMediaClient.addProgressListener(progressBarUpdater, period);
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		if(remoteMediaClient != null) {
-			setProgressBarUpdater();
-			chromecastPlaybackProgressBar.setProgress((int)remoteMediaClient.getApproximateStreamPosition());
-		}
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-		if(remoteMediaClient != null)
-			remoteMediaClient.removeProgressListener(progressBarUpdater);
-	}
-
 	/**
 	 * Change the visibility of the play/pause/buffering buttons depending on the current playback state.
 	 */
-	private void updateButtons() {
+	protected void updateButtons() {
 		if(currentPlayerState == MediaStatus.PLAYER_STATE_PLAYING) {
 			playButton.setVisibility(View.GONE);
 			pauseButton.setVisibility(View.VISIBLE);
@@ -219,14 +219,14 @@ public class ChromecastMiniControllerFragment extends FragmentEx {
 	@OnClick(R.id.forwardButton)
 	public void forward(View v) {
 		if(remoteMediaClient.getApproximateStreamPosition() + 30000 < remoteMediaClient.getStreamDuration()) {
-			isSeeking = true;
+			didSeek = true;
 			remoteMediaClient.seek(remoteMediaClient.getApproximateStreamPosition() + 30000);
 		}
 	}
 
 	@OnClick(R.id.rewindButton)
 	public void rewind(View v) {
-		isSeeking = true;
+		didSeek = true;
 		remoteMediaClient.seek(remoteMediaClient.getApproximateStreamPosition() - 10000);
 	}
 
@@ -234,4 +234,22 @@ public class ChromecastMiniControllerFragment extends FragmentEx {
 	public void stop(View v) {
 		remoteMediaClient.stop();
 	}
+
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if(remoteMediaClient != null) {
+			setProgressBarUpdater();
+			chromecastPlaybackProgressBar.setProgress((int)remoteMediaClient.getApproximateStreamPosition());
+		}
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		if(remoteMediaClient != null)
+			remoteMediaClient.removeProgressListener(progressBarUpdater);
+	}
+
 }

@@ -35,6 +35,7 @@
 			android:theme="@style/VideoPlayerActivityTheme"
 			tools:node="replace">
 		</activity>
+		<activity android:name="free.rm.skytube.gui.activities.NotificationClickActivity"></activity>
 	</application>
 
 </manifest>
