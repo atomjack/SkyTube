@@ -35,9 +35,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import free.rm.skytube.R;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.YouTubeVideo;
 import free.rm.skytube.businessobjects.db.BookmarksDb;
+import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 
 /**
  * A ViewHolder for the videos grid view.

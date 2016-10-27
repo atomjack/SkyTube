@@ -9,6 +9,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 5
+        vectorDrawables.useSupportLibrary = true
         buildConfigField 'String', 'YOUTUBE_API_KEY', '"AIzaSyDAOcAgAAd098p_FLIePaQNKPTpcyhUGBA"';
         vectorDrawables.useSupportLibrary true
         multiDexEnabled true    // this is as we have over 65536 lines of code...
@@ -17,6 +18,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "CHROMECAST_APP_ID", "\"39E8D587\""
+        }
+        debug {
+            buildConfigField "String", "CHROMECAST_APP_ID", "\"29A66E17\""
         }
     }
     productFlavors {
@@ -33,17 +38,21 @@ android {
             resValue "string", "app_name", "SkyTube Extra"
         }
     }
+    dexOptions {
+        jumboMode true
+    }
 }
 
 configurations {
     nonFreeCompile
+    compile.exclude group: "org.apache.httpcomponents", module: "httpclient"
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
 
-    nonFreeCompile files('libs/YouTubeAndroidPlayerApi.jar')
+    extraCompile files('libs/YouTubeAndroidPlayerApi.jar')
 
     compile group: 'org.ocpsoft.prettytime', name: 'prettytime', version: '3.2.7.Final'
     compile 'com.google.http-client:google-http-client-android:1.22.0'
@@ -60,4 +69,13 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.1'
     compile 'com.android.support:design:25.1.1'
     compile 'com.android.support:multidex:1.0.1'    // this is as we have over 65536 lines of code...
+
+    compile group: 'joda-time', name: 'joda-time', version: '2.3'
+
+    extraCompile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
+    extraCompile 'com.android.support:mediarouter-v7:25.0.0'
+    extraCompile 'com.google.android.gms:play-services-cast-framework:9.4.0'
+    extraCompile 'com.googlecode.android-query:android-query:0.25.9'
+    extraCompile 'com.sothree.slidinguppanel:library:3.3.1'
+    extraCompile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
 }

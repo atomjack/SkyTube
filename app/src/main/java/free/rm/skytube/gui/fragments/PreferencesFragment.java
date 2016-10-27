@@ -26,10 +26,15 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceScreen;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import free.rm.skytube.BuildConfig;
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.VideoStream.VideoResolution;
+import free.rm.skytube.gui.app.SkyTubeApp;
 
 /**
  * A fragment that allows the user to change the settings of this app.  This fragment is called by
@@ -72,11 +77,29 @@ public class PreferencesFragment extends PreferenceFragment implements SharedPre
 			}
 		});
 
-		// remove the 'use official player' checkbox if we are running an OSS version
+		// remove the 'use official player' checkbox & Chromecast section if we are running an OSS version
 		if (BuildConfig.FLAVOR.equals("oss")) {
 			PreferenceCategory videoPlayerCategory = (PreferenceCategory) findPreference(getString(R.string.pref_key_video_player_category));
 			Preference useOfficialPlayer = findPreference(getString(R.string.pref_key_use_offical_player));
 			videoPlayerCategory.removePreference(useOfficialPlayer);
+
+			PreferenceCategory chromecastCategory = (PreferenceCategory) findPreference(getString(R.string.pref_key_chromecast_category));
+			PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference(getResources().getString(R.string.key_preferences));
+			preferenceScreen.removePreference(chromecastCategory);
+		} else {
+			// Non-oss version, populate the Chromecast list
+			ListPreference chromecastExternalPref = (ListPreference)findPreference(getString(R.string.pref_key_autocast));
+			List<String> chromecastEntries = new ArrayList<>();
+			List<String> chromecastValues = new ArrayList<>();
+			chromecastEntries.add(getString(R.string.pref_title_chromecast_none));
+			chromecastValues.add(getString(R.string.pref_key_chromecast_none));
+			for(String routeId : SkyTubeApp.getInstance().chromecastDevices.keySet()) {
+				chromecastEntries.add(SkyTubeApp.getInstance().chromecastDevices.get(routeId));
+				chromecastValues.add(routeId);
+			}
+			chromecastExternalPref.setEntries(chromecastEntries.toArray(new CharSequence[chromecastEntries.size()]));
+			chromecastExternalPref.setEntryValues(chromecastValues.toArray(new CharSequence[chromecastValues.size()]));
+
 		}
 
 		// set the app's version number
