@@ -20,7 +20,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import free.rm.skytube.R;
-import free.rm.skytube.businessobjects.MainActivityListener;
+import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
+import free.rm.skytube.gui.activities.BaseActivity;
 import free.rm.skytube.gui.businessobjects.FragmentEx;
 import free.rm.skytube.gui.businessobjects.SubsAdapter;
 
@@ -39,11 +40,17 @@ public class MainFragment extends FragmentEx {
 	@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_main, container, false);
+		final View view = inflater.inflate(R.layout.fragment_main, container, false);
+
+		// For the non-oss version, when using a Chromecast, returning to this fragment from another fragment that uses
+		// CoordinatorLayout results in the SlidingUpPanel to be positioned improperly. We need to redraw the panel
+		// to fix this. The oss version just has a no-op method.
+		((BaseActivity)getActivity()).redrawPanel();
 
 		// setup the toolbar / actionbar
 		Toolbar toolbar = (Toolbar) view.findViewById(R.id.activity_main_toolbar);
 		setSupportActionBar(toolbar);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
 		// indicate that this fragment has an action bar menu
 		setHasOptionsMenu(true);
