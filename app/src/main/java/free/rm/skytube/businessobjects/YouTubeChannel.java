@@ -29,6 +29,7 @@ import com.google.api.services.youtube.model.ThumbnailDetails;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import free.rm.skytube.BuildConfig;
@@ -52,6 +53,7 @@ public class YouTubeChannel implements Serializable {
 	private boolean isUserSubscribed;
 	private long	lastVisitTime;
 	private boolean	newVideosSinceLastVisit = false;
+	private List<YouTubeVideo> youTubeVideos = new ArrayList<>();
 
 	private static final String	TAG = YouTubeChannel.class.getSimpleName();
 
@@ -245,4 +247,13 @@ public class YouTubeChannel implements Serializable {
 		this.newVideosSinceLastVisit = newVideos;
 	}
 
+	public void addYouTubeVideo(YouTubeVideo video) {
+		if(!youTubeVideos.contains(video)) {
+			youTubeVideos.add(video);
+		}
+	}
+
+	public List<YouTubeVideo> getYouTubeVideos() {
+		return youTubeVideos;
+	}
 }

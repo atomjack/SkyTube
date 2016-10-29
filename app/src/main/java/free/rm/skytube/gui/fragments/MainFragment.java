@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.MainActivityListener;
+import free.rm.skytube.businessobjects.db.SubscriptionsDb;
 import free.rm.skytube.gui.businessobjects.FragmentEx;
 import free.rm.skytube.gui.businessobjects.SubsAdapter;
 
@@ -31,6 +32,7 @@ public class MainFragment extends FragmentEx {
 	private ActionBarDrawerToggle	subsDrawerToggle;
 	private VideosGridFragment featuredVideosFragment;
 	private VideosGridFragment mostPopularVideosFragment;
+	private SubscriptionsFragment subscriptionsFragment;
 
 	private VideosPagerAdapter videosPagerAdapter;
 	private ViewPager viewPager;
@@ -39,6 +41,8 @@ public class MainFragment extends FragmentEx {
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_main, container, false);
+
+		SubscriptionsDb.getSubscriptionsDb().doTest();
 
 		// setup the toolbar / actionbar
 		Toolbar toolbar = (Toolbar) view.findViewById(R.id.activity_main_toolbar);
@@ -72,6 +76,7 @@ public class MainFragment extends FragmentEx {
 
 
 		viewPager = (ViewPager)view.findViewById(R.id.pager);
+		viewPager.setOffscreenPageLimit(3);
 		videosPagerAdapter = new VideosPagerAdapter(getActivity(), getChildFragmentManager());
 		viewPager.setAdapter(videosPagerAdapter);
 
@@ -91,6 +96,25 @@ public class MainFragment extends FragmentEx {
 
 			@Override
 			public void onTabReselected(TabLayout.Tab tab) {
+
+			}
+		});
+
+		viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+			@Override
+			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+			}
+
+			@Override
+			public void onPageSelected(int position) {
+				if(position == 2) {
+					//subscriptionsFragment
+				}
+			}
+
+			@Override
+			public void onPageScrollStateChanged(int state) {
 
 			}
 		});
@@ -131,7 +155,7 @@ public class MainFragment extends FragmentEx {
 
 		@Override
 		public int getCount() {
-			return 2;
+			return 3;
 		}
 
 		@Override
@@ -149,6 +173,9 @@ public class MainFragment extends FragmentEx {
 					args1.putInt(VideosGridFragment.VIDEO_CATEGORY, 1);
 					mostPopularVideosFragment.setArguments(args1);
 					return mostPopularVideosFragment;
+				case 2:
+					subscriptionsFragment = new SubscriptionsFragment();
+					return subscriptionsFragment;
 			}
 			return null;
 		}
@@ -160,6 +187,8 @@ public class MainFragment extends FragmentEx {
 					return getString(R.string.featured);
 				case 1:
 					return getString(R.string.popular);
+				case 2:
+					return getString(R.string.subscriptions);
 				default:
 					return null;
 			}

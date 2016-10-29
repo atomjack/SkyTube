@@ -22,6 +22,7 @@ import android.util.Log;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Activity;
 import com.google.api.services.youtube.model.ActivityListResponse;
+import com.google.api.services.youtube.model.Subscription;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,6 +32,7 @@ import free.rm.skytube.businessobjects.GetVideosDetailsByIDs;
 import free.rm.skytube.businessobjects.GetYouTubeVideos;
 import free.rm.skytube.businessobjects.YouTubeAPI;
 import free.rm.skytube.businessobjects.YouTubeVideo;
+import free.rm.skytube.businessobjects.db.SubscriptionsDb;
 
 /**
  * Returns the videos of a channel.  The channel is specified by calling {@link #setQuery(String)}.
@@ -43,6 +45,8 @@ public class GetChannelVideos extends GetYouTubeVideos {
 
 	private static final String	TAG = GetChannelVideos.class.getSimpleName();
 	protected static final Long	MAX_RESULTS = 45L;
+
+	private String channelId;
 
 	@Override
 	public void init() throws IOException {
@@ -110,8 +114,10 @@ public class GetChannelVideos extends GetYouTubeVideos {
 
 	@Override
 	public void setQuery(String query) {
-		if(activitiesList != null)
+		if(activitiesList != null) {
+			channelId = query;
 			activitiesList.setChannelId(query);
+		}
 	}
 
 	@Override
