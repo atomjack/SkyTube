@@ -42,8 +42,6 @@ public class MainFragment extends FragmentEx {
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-		SubscriptionsDb.getSubscriptionsDb().doTest();
-
 		// setup the toolbar / actionbar
 		Toolbar toolbar = (Toolbar) view.findViewById(R.id.activity_main_toolbar);
 		setSupportActionBar(toolbar);
@@ -109,7 +107,11 @@ public class MainFragment extends FragmentEx {
 			@Override
 			public void onPageSelected(int position) {
 				if(position == 2) {
-					//subscriptionsFragment
+					// Subscriptions tab has been selected
+					if(SubscriptionsDb.getSubscriptionsDb().getSubscriptionVideos().size() == 0 && SubscriptionsDb.getSubscriptionsDb().numSubscribedChannels() > 0) {
+						// User is subscribed to at least one channel, but there are no subscription videos saved in the database. Fetch them now.
+						subscriptionsFragment.onRefresh();
+					}
 				}
 			}
 
@@ -118,8 +120,6 @@ public class MainFragment extends FragmentEx {
 
 			}
 		});
-
-
 
 		return view;
 	}
