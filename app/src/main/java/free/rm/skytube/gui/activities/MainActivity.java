@@ -45,7 +45,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.AsyncTaskParallel;
@@ -68,7 +68,7 @@ public class MainActivity extends BaseActivity {
 	/** Set to true of the UpdatesCheckerTask has run; false otherwise. */
 	private static boolean updatesCheckerTaskRan = false;
 
-	@Bind(R.id.fragment_container)
+	@BindView(R.id.fragment_container)
 	FrameLayout fragmentContainer;
 
 	MainFragment mainFragment;

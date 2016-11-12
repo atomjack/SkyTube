@@ -51,7 +51,7 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.common.images.WebImage;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import free.rm.skytube.BuildConfig;
 import free.rm.skytube.R;
@@ -66,9 +66,11 @@ import free.rm.skytube.businessobjects.interfaces.GetVideoDetailsListener;
 import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 import free.rm.skytube.gui.app.SkyTubeApp;
 import free.rm.skytube.gui.businessobjects.Logger;
+import free.rm.skytube.gui.fragments.ChromecastControllerFragment;
 import free.rm.skytube.gui.fragments.ChromecastMiniControllerFragment;
 
 public abstract class BaseActivity extends AppCompatActivity implements MainActivityListener, ChromecastListener {
+	public static final String KEY_VIDEO_URL = "url";
 	public static final String KEY_PUBLISH_DATE = "publishDate";
 	public static final String KEY_DESCRIPTION = "description";
 	public static final String KEY_RATING = "rating";
@@ -76,28 +78,40 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	public static final String KEY_POSITION = "position";
 	public static final String KEY_DURATION_IN_SECONDS = "durationInSeconds";
 
+	public static final String ACTION_NOTIFICATION_CLICK = "free.rm.skytube.ACTION_NOTIFICATION_CLICK";
+
 	private MenuItem mediaRouteMenuItem;
 	private CastContext mCastContext;
 	private CastSession mCastSession;
 	private SessionManager mSessionManager;
 	private final SessionManagerListener mSessionManagerListener =
 					new SessionManagerListenerImpl();
-	public ChromecastMiniControllerFragment chromecastMiniControllerFragment;
+	private ChromecastMiniControllerFragment chromecastMiniControllerFragment;
+	private ChromecastControllerFragment chromecastControllerFragment;
+
 
 	private MediaRouter mediaRouter;
 	private MediaRouteSelector mediaRouteSelector;
 	private Intent externalPlayIntent;
+	private Intent notificationClickIntent;
 
-	@Bind((R.id.sliding_layout))
+	@BindView((R.id.sliding_layout))
 	protected SlidingUpPanelLayout slidingLayout;
 
 	@Nullable
-	@Bind(R.id.chromecastLoadingSpinner)
+	@BindView(R.id.chromecastLoadingSpinner)
 	ProgressBar chromecastLoadingSpinner;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		if(savedInstanceState != null) {
+			chromecastMiniControllerFragment = (ChromecastMiniControllerFragment)getSupportFragmentManager().getFragment(savedInstanceState, ChromecastMiniControllerFragment.CHROMECAST_MINI_CONTROLLER_FRAGMENT);
+			chromecastControllerFragment = (ChromecastControllerFragment)getSupportFragmentManager().getFragment(savedInstanceState, ChromecastControllerFragment.CHROMECAST_CONTROLLER_FRAGMENT);
+		}
+
+		Logger.d("on create: %s", getIntent() != null ? getIntent().getAction() : null);
 		mCastContext = CastContext.getSharedInstance(this);
 		mSessionManager = mCastContext.getSessionManager();
 
@@ -135,9 +149,26 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
+		Logger.d("on new intent: %s", intent.getAction());
 		handleExternalPlayOnChromecast(intent);
+		handleNotificationClick(intent);
 	}
 
+	private void handleNotificationClick(Intent intent) {
+		if(intent != null) {
+			// User clicked on the notification while a video is playing on Chromecast.
+			if (intent.getAction() != null && intent.getAction().equals(ACTION_NOTIFICATION_CLICK)) {
+				// If the app is being resumed. If we're not, this will get called once we resume our connection.
+				if(notificationClickIntent == null && chromecastMiniControllerFragment == null) {
+					notificationClickIntent = intent;
+				} else {
+					chromecastMiniControllerFragment.setDidClickNotification(true);
+					slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+					slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+				}
+			}
+		}
+	}
 
 	/**
 	 * If the Preference has been chosen to always launch videos via external apps via the chosen
@@ -207,12 +238,19 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 
 	@Override
 	protected void onResume() {
-		mCastSession = mSessionManager.getCurrentCastSession();
+		Logger.d("onResume");
+		if(mCastSession == null)
+			mCastSession = mSessionManager.getCurrentCastSession();
 		mSessionManager.addSessionManagerListener(mSessionManagerListener);
-		if(mCastSession != null && mCastSession.getRemoteMediaClient() != null && mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
+		if(mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
 			chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
-			showPanel();
+			chromecastControllerFragment.init(mCastSession.getRemoteMediaClient());
+			if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE)
+				showPanel();
+			else
+				hidePanel();
 		}
+		handleNotificationClick(getIntent());
 		super.onResume();
 	}
 
@@ -270,6 +308,10 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 				handleExternalPlayOnChromecast(externalPlayIntent);
 				externalPlayIntent = null;
 			}
+			if(notificationClickIntent != null) {
+				handleNotificationClick(notificationClickIntent);
+				notificationClickIntent = null;
+			}
 		}
 
 		@Override
@@ -280,6 +322,8 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 				public void run() {
 					if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
 						chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
+						chromecastControllerFragment.init(mCastSession.getRemoteMediaClient());
+						slidingLayout.addPanelSlideListener(getOnPanelDisplayed((int) mCastSession.getRemoteMediaClient().getApproximateStreamPosition(), (int) mCastSession.getRemoteMediaClient().getStreamDuration()));
 					} else if(externalPlayIntent != null) {
 						// A default Chromecast has been set to handle external intents, and that Chromecast has now been
 						// connected to. Play the video (which is stored in externalPlayIntent).
@@ -337,8 +381,22 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 
 	protected void onLayoutSet() {
 		ButterKnife.bind(this);
-		slidingLayout.setTouchEnabled(false);
-		chromecastMiniControllerFragment = (ChromecastMiniControllerFragment)getSupportFragmentManager().findFragmentById(R.id.chromecastMiniControllerFragment);
+//		slidingLayout.setTouchEnabled(false);
+		if(chromecastMiniControllerFragment == null)
+			chromecastMiniControllerFragment = (ChromecastMiniControllerFragment)getSupportFragmentManager().findFragmentById(R.id.chromecastMiniControllerFragment);
+		chromecastMiniControllerFragment.setSlidingLayout(slidingLayout);
+
+		if(chromecastControllerFragment == null)
+			chromecastControllerFragment = (ChromecastControllerFragment)getSupportFragmentManager().findFragmentById(R.id.chromecastControllerFragment);
+
+		// Let both controller fragments know about each other, so that they can adjust the other's progress bar when needed
+		chromecastMiniControllerFragment.setOtherControllerFragment(chromecastControllerFragment);
+		chromecastControllerFragment.setOtherControllerFragment(chromecastMiniControllerFragment);
+
+		if(notificationClickIntent != null) {
+			handleNotificationClick(notificationClickIntent);
+			notificationClickIntent = null;
+		}
 	}
 
 	/**
@@ -360,8 +418,11 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	}
 
 	private void showPanel() {
-		if(slidingLayout != null)
+		if(slidingLayout != null) {
 			slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+//			slidingLayout.removePanelSlideListener(panelSlideListener);
+//			slidingLayout.addPanelSlideListener(panelSlideListener);
+		}
 	}
 
 	private void hidePanel() {
@@ -402,6 +463,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 					metadata.putString(MediaMetadata.KEY_TITLE, video.getTitle());
 					metadata.putString(MediaMetadata.KEY_SUBTITLE, video.getChannelName());
 					metadata.putString(KEY_PUBLISH_DATE, video.getPublishDatePretty());
+					metadata.putString(KEY_VIDEO_URL, video.getVideoUrl());
 					metadata.putString(KEY_DESCRIPTION, video.getDescription());
 					metadata.putString(KEY_RATING, video.getThumbsUpPercentageStr());
 					metadata.putString(KEY_DURATION, video.getDuration());
@@ -418,25 +480,13 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 
 					remoteMediaClient.load(currentPlayingMedia, true, 0);
 					chromecastMiniControllerFragment.init(remoteMediaClient, currentPlayingMedia, position);
+					chromecastControllerFragment.init(remoteMediaClient, currentPlayingMedia, position);
 					// If the Controller panel isn't visible, setting the progress of the progressbar in the mini controller won't
 					// work until the panel is visible, so do it as soon as the sliding panel is visible. Adding this listener when
 					// the panel is not hidden will lead to a java.util.ConcurrentModificationException the next time a video is
 					// switching from local playback to chromecast, so we should only do this if the panel is hidden.
 					if(slidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.HIDDEN) {
-						slidingLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
-							@Override
-							public void onPanelSlide(View view, float v) {
-
-							}
-
-							@Override
-							public void onPanelStateChanged(View view, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-								if (newState == SlidingUpPanelLayout.PanelState.COLLAPSED) {
-									chromecastMiniControllerFragment.setProgress(position);
-									slidingLayout.removePanelSlideListener(this);
-								}
-							}
-						});
+						slidingLayout.addPanelSlideListener(getOnPanelDisplayed(position, video.getDurationInSeconds()));
 					}
 				}
 
@@ -459,6 +509,26 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 		}
 	}
 
+	private SlidingUpPanelLayout.PanelSlideListener getOnPanelDisplayed(final int position, final int duration) {
+		return new SlidingUpPanelLayout.PanelSlideListener() {
+			@Override
+			public void onPanelSlide(View view, float v) {
+
+			}
+
+			@Override
+			public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+				if (newState == SlidingUpPanelLayout.PanelState.COLLAPSED) {
+					chromecastMiniControllerFragment.setDuration(duration);
+					chromecastMiniControllerFragment.setProgress(position);
+					chromecastControllerFragment.setDuration(duration);
+					chromecastControllerFragment.setProgress(position);
+					slidingLayout.removePanelSlideListener(this);
+				}
+			}
+		};
+	}
+
 	/**
 	 * When connected to a Chromecast and a video is clicked, this shows a spinner to indicate
 	 * that the video is being loaded.
@@ -476,7 +546,8 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	public void onPlayStarted() {
 		if(chromecastLoadingSpinner != null)
 			chromecastLoadingSpinner.setVisibility(View.GONE);
-		showPanel();
+		if(slidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.HIDDEN)
+			showPanel();
 	}
 
 	/**
@@ -485,5 +556,21 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	@Override
 	public void onPlayStopped() {
 		hidePanel();
+	}
+
+	@Override
+	public void onBackPressed() {
+		if(slidingLayout != null && slidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED)
+			slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+		else
+			super.onBackPressed();
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		getSupportFragmentManager().putFragment(outState, ChromecastMiniControllerFragment.CHROMECAST_MINI_CONTROLLER_FRAGMENT, chromecastMiniControllerFragment);
+		getSupportFragmentManager().putFragment(outState, chromecastControllerFragment.CHROMECAST_CONTROLLER_FRAGMENT, chromecastControllerFragment);
+
 	}
 }
