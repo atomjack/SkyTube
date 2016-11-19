@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -274,9 +275,24 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 		@Override
 		public void onSessionResumed(Session session, boolean wasSuspended) {
 			mCastSession = CastContext.getSharedInstance(BaseActivity.this).getSessionManager().getCurrentCastSession();
-			if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
-				chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
-			}
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
+						chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
+					} else if(externalPlayIntent != null) {
+						// A default Chromecast has been set to handle external intents, and that Chromecast has now been
+						// connected to. Play the video (which is stored in externalPlayIntent).
+						handleExternalPlayOnChromecast(externalPlayIntent);
+						externalPlayIntent = null;
+					}
+				}
+			};
+			// Sometimes when we resume a chromecast session, even if media is actually playing, the player state is still idle here.
+			// In that case, wait 500ms and check again (above Runnable). But if it's not idle, do the above right away.
+			int delay = mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE ? 0 : 500;
+			new Handler().postDelayed(r, delay);
+
 			invalidateOptionsMenu();
 			SkyTubeApp.getInstance().connectedToChromecast = true;
 			SkyTubeApp.getInstance().connectingToChromecast = false;
