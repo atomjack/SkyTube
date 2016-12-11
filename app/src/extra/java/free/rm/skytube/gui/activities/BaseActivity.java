@@ -243,11 +243,11 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 			mCastSession = mSessionManager.getCurrentCastSession();
 		mSessionManager.addSessionManagerListener(mSessionManagerListener);
 		if(mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
-			chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
-			chromecastControllerFragment.init(mCastSession.getRemoteMediaClient());
-			if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE)
+			if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
+				chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
+				chromecastControllerFragment.init(mCastSession.getRemoteMediaClient());
 				showPanel();
-			else
+			} else
 				hidePanel();
 		}
 		handleNotificationClick(getIntent());
