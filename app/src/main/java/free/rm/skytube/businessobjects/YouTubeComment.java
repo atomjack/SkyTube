@@ -17,6 +17,8 @@
 
 package free.rm.skytube.businessobjects;
 
+import com.google.api.client.util.DateTime;
+
 /**
  * A YouTube comment.
  */
@@ -32,10 +34,20 @@ public class YouTubeComment {
 		if (comment.getSnippet() != null) {
 			this.author = comment.getSnippet().getAuthorDisplayName();
 			this.comment = comment.getSnippet().getTextDisplay();
-			this.datePublished = new PrettyTimeEx().format(comment.getSnippet().getPublishedAt());
+			setDatePublished(comment.getSnippet().getPublishedAt());
 			this.likeCount = comment.getSnippet().getLikeCount().toString();
 			this.thumbnailUrl = comment.getSnippet().getAuthorProfileImageUrl();
 		}
+	}
+
+	private void setDatePublished(final DateTime publishedAt) {
+		new AsyncTaskParallel<Void, Void, Void>() {
+			@Override
+			protected Void doInBackground(Void... voids) {
+				datePublished = new PrettyTimeEx().format(publishedAt);
+				return null;
+			}
+		}.executeInParallel();
 	}
 
 	public String getAuthor() {

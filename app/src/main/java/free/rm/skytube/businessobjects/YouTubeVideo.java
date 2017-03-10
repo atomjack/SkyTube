@@ -63,6 +63,8 @@ public class YouTubeVideo implements Serializable {
 	private String	viewsCount;
 	/** The date/time of when this video was published. */
 	private DateTime	publishDate;
+	/** The date/time of when this video was published, in a pretty format (e.g. "7 days ago"). This field will get set via an Async call when the YouTubeVideo object is instantiated */
+	private String publishDatePretty;
 	/** Thumbnail URL string. */
 	private String	thumbnailUrl;
 	/** The language of this video.  (This tends to be ISO 639-1).  */
@@ -84,6 +86,7 @@ public class YouTubeVideo implements Serializable {
 			this.channelId   = video.getSnippet().getChannelId();
 			this.channelName = video.getSnippet().getChannelTitle();
 			publishDate = video.getSnippet().getPublishedAt();
+			setPublishDatePretty();
 
 			if (video.getSnippet().getThumbnails() != null) {
 				Thumbnail thumbnail = video.getSnippet().getThumbnails().getHigh();
@@ -117,8 +120,6 @@ public class YouTubeVideo implements Serializable {
 				this.dislikeCount = String.format("%,d", video.getStatistics().getDislikeCount());
 		}
 	}
-
-
 
 	/**
 	 * Returns a list of video/stream meta-data that is supported by this app (with respect to this
@@ -187,14 +188,24 @@ public class YouTubeVideo implements Serializable {
 		this.duration = VideoDuration.toHumanReadableString(duration);
 	}
 
+	private void setPublishDatePretty() {
+		new AsyncTaskParallel<Void, Void, Void>() {
+			@Override
+			protected Void doInBackground(Void... voids) {
+				if(publishDate != null)
+					publishDatePretty = new PrettyTimeEx().format(publishDate);
+				return null;
+			}
+
+
+		}.executeInParallel();
+	}
 
 	/**
 	 * Gets the {@link #publishDate} as a pretty string.
 	 */
 	public String getPublishDatePretty() {
-		return (publishDate != null)
-								? new PrettyTimeEx().format(publishDate)
-								: "???";
+		return publishDatePretty != null ? publishDatePretty : "???";
 	}
 
 	public String getId() {
