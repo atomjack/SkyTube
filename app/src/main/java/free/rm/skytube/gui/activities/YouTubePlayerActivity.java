@@ -19,6 +19,7 @@ package free.rm.skytube.gui.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.view.Menu;
@@ -85,12 +86,24 @@ public class YouTubePlayerActivity extends BaseActivity {
 	@Override
 	protected void returnToMainAndResume() {
 		youTubePlayerFragment.pause();
-		Intent intent = new Intent();
+
 		Bundle bundle = new Bundle();
 		bundle.putSerializable(YOUTUBE_VIDEO, youTubePlayerFragment.getYouTubeVideo());
 		bundle.putInt(YOUTUBE_VIDEO_POSITION, youTubePlayerFragment.getCurrentVideoPosition());
-		intent.putExtras(bundle);
-		setResult(RESULT_OK, intent);
-		finish();
+
+		if(getIntent() != null && getIntent().getAction() != null && getIntent().getAction().equals(Intent.ACTION_VIEW)) {
+			Intent intent = new Intent(YouTubePlayerActivity.this, MainActivity.class);
+			intent.putExtras(bundle);
+			intent.setData(Uri.parse(youTubePlayerFragment.getYouTubeVideo().getVideoUrl()));
+			intent.setAction(Intent.ACTION_VIEW);
+			intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+			startActivity(intent);
+			finish();
+		} else {
+			Intent intent = new Intent();
+			intent.putExtras(bundle);
+			setResult(RESULT_OK, intent);
+			finish();
+		}
 	}
 }

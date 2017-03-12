@@ -105,8 +105,7 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 		mediaRouteSelector = new MediaRouteSelector.Builder()
 						.addControlCategory(CastMediaControlIntent.categoryForCast(BuildConfig.CHROMECAST_APP_ID)).build();
 		mediaRouter.addCallback(mediaRouteSelector, new MediaRouter.Callback() {
-			@Override
-			public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+			private void onRouteAddedOrChanged(MediaRouter.RouteInfo route) {
 				if(SkyTubeApp.getInstance().chromecastDevices.get(route.getId()) == null)
 					SkyTubeApp.getInstance().chromecastDevices.put(route.getId(), route.getName());
 				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(BaseActivity.this);
@@ -119,9 +118,13 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 			}
 
 			@Override
+			public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo route) {
+				onRouteAddedOrChanged(route);
+			}
+
+			@Override
 			public void onRouteChanged(MediaRouter router, MediaRouter.RouteInfo route) {
-				if(SkyTubeApp.getInstance().chromecastDevices.get(route.getId()) == null)
-					SkyTubeApp.getInstance().chromecastDevices.put(route.getId(), route.getName());
+				onRouteAddedOrChanged(route);
 			}
 
 			@Override
@@ -209,9 +212,13 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 	protected void onResume() {
 		mCastSession = mSessionManager.getCurrentCastSession();
 		mSessionManager.addSessionManagerListener(mSessionManagerListener);
-		if(mCastSession != null && mCastSession.getRemoteMediaClient() != null && mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
-			chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
-			showPanel();
+		if(mCastSession != null && mCastSession.getRemoteMediaClient() != null) {
+			if(mCastSession.getRemoteMediaClient().getPlayerState() != MediaStatus.PLAYER_STATE_IDLE) {
+				chromecastMiniControllerFragment.init(mCastSession.getRemoteMediaClient());
+				showPanel();
+			} else {
+				hidePanel();
+			}
 		}
 		super.onResume();
 	}
@@ -443,7 +450,9 @@ public abstract class BaseActivity extends AppCompatActivity implements MainActi
 				@Override
 				public void onGetDesiredStreamError(String errorMessage) {
 					if (errorMessage != null) {
-						new AlertDialog.Builder(getApplicationContext())
+						if(chromecastLoadingSpinner != null)
+							chromecastLoadingSpinner.setVisibility(View.GONE);
+						new AlertDialog.Builder(BaseActivity.this)
 										.setMessage(errorMessage)
 										.setTitle(R.string.error_video_play)
 										.setCancelable(false)
