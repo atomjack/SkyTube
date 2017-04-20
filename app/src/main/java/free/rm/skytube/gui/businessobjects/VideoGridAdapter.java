@@ -29,10 +29,10 @@ import java.io.IOException;
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.GetYouTubeVideos;
 import free.rm.skytube.businessobjects.GetYouTubeVideosTask;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.VideoCategory;
 import free.rm.skytube.businessobjects.YouTubeChannel;
 import free.rm.skytube.businessobjects.YouTubeVideo;
+import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 
 /**
  * An adapter that will display videos in a {@link android.widget.GridView}.
@@ -136,8 +136,6 @@ public class VideoGridAdapter extends RecyclerViewAdapterEx<YouTubeVideo, GridVi
 			this.currentVideoCategory = null;
 		}
 	}
-
-
 
 	@Override
 	public GridViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

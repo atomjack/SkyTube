@@ -22,14 +22,17 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.YouTubeAPIKey;
+import free.rm.skytube.businessobjects.ChromecastListener;
 import free.rm.skytube.businessobjects.YouTubeVideo;
+import free.rm.skytube.gui.activities.BaseActivity;
 import free.rm.skytube.gui.activities.YouTubePlayerActivity;
-import free.rm.skytube.gui.fragments.YouTubePlayerFragment;
+import free.rm.skytube.gui.app.SkyTubeApp;
 
 /**
  * Launches YouTube player.
@@ -43,14 +46,33 @@ public class YouTubePlayer {
 	 *
 	 * @param youTubeVideo Video to be viewed.
 	 */
-	public static void launch(YouTubeVideo youTubeVideo, Context context) {
+	public static void launch(final YouTubeVideo youTubeVideo, final Context context) {
 		if (youTubeVideo != null) {
-			// if the user has selected to play the videos using the official YouTube player
-			// (in the preferences/settings) ...
-			if (useOfficialYouTubePlayer(context)) {
-				launchOfficialYouTubePlayer(youTubeVideo.getId(), context);
+			if(SkyTubeApp.getInstance().connectingToChromecast) {
+				((ChromecastListener)context).showLoadingSpinner();
+				// In the process of connecting to a chromecast. Wait 500ms and try again
+				new Handler().postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						launch(youTubeVideo, context);
+					}
+				}, 500);
 			} else {
-				launchCustomYouTubePlayer(youTubeVideo, context);
+				if (SkyTubeApp.getInstance().connectedToChromecast) {
+					if (context instanceof ChromecastListener) {
+						((ChromecastListener) context).playVideoOnChromecast(youTubeVideo, 0);
+					} else {
+						// TODO: Handle this
+					}
+				} else {
+					// if the user has selected to play the videos using the official YouTube player
+					// (in the preferences/settings) ...
+					if (useOfficialYouTubePlayer(context)) {
+						launchOfficialYouTubePlayer(youTubeVideo.getId(), context);
+					} else {
+						launchCustomYouTubePlayer(youTubeVideo, context);
+					}
+				}
 			}
 		}
 	}
@@ -98,8 +120,8 @@ public class YouTubePlayer {
 	 */
 	private static void launchCustomYouTubePlayer(YouTubeVideo youTubeVideo, Context context) {
 		Intent i = new Intent(context, YouTubePlayerActivity.class);
-		i.putExtra(YouTubePlayerFragment.YOUTUBE_VIDEO_OBJ, youTubeVideo);
-		context.startActivity(i);
+		i.putExtra(YouTubePlayerActivity.YOUTUBE_VIDEO_OBJ, youTubeVideo);
+		((BaseActivity)context).startActivityForResult(i, YouTubePlayerActivity.YOUTUBE_PLAYER_RESUME_RESULT);
 	}
 
 }

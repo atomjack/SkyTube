@@ -23,6 +23,10 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.model.Thumbnail;
 import com.google.api.services.youtube.model.Video;
 
+import org.joda.time.Period;
+import org.joda.time.format.ISOPeriodFormat;
+import org.joda.time.format.PeriodFormatter;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,7 +38,9 @@ import java.util.Set;
 
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.VideoStream.ParseStreamMetaData;
+import free.rm.skytube.businessobjects.VideoStream.StreamMetaData;
 import free.rm.skytube.businessobjects.VideoStream.StreamMetaDataList;
+import free.rm.skytube.businessobjects.interfaces.GetDesiredStreamListener;
 import free.rm.skytube.gui.app.SkyTubeApp;
 
 /**
@@ -59,6 +65,8 @@ public class YouTubeVideo implements Serializable {
 	private int		thumbsUpPercentage;
 	/** Video duration string (e.g. "5:15"). */
 	private String	duration;
+	/** Video duration in seconds */
+	private int durationInSeconds;
 	/** Total views count.  This can be <b>null</b> if the video does not allow the user to
 	 * like/dislike it. */
 	private String	viewsCount;
@@ -103,6 +111,7 @@ public class YouTubeVideo implements Serializable {
 		if (video.getContentDetails() != null) {
 			setDuration(video.getContentDetails().getDuration());
 			setIsLiveStream();
+			setDurationInSeconds(video.getContentDetails().getDuration());
 		}
 
 		if (video.getStatistics() != null) {
@@ -210,6 +219,16 @@ public class YouTubeVideo implements Serializable {
 	}
 
 
+	/*
+	 * Sets the {@link #durationInSeconds}
+	 * @param durationInSeconds The duration in seconds.
+	 */
+	public void setDurationInSeconds(String durationInSeconds) {
+		PeriodFormatter formatter = ISOPeriodFormat.standard();
+		Period p = formatter.parsePeriod(durationInSeconds);
+		this.durationInSeconds = p.toStandardSeconds().getSeconds();
+	}
+
 	/**
 	 * Gets the {@link #publishDate} as a pretty string.
 	 */
@@ -217,6 +236,10 @@ public class YouTubeVideo implements Serializable {
 		return (publishDate != null)
 								? new PrettyTimeEx().format(publishDate)
 								: "???";
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public String getId() {
@@ -276,6 +299,10 @@ public class YouTubeVideo implements Serializable {
 
 	public String getDuration() {
 		return duration;
+	}
+
+	public int getDurationInSeconds() {
+		return durationInSeconds;
 	}
 
 	public String getViewsCount() {
@@ -345,4 +372,40 @@ public class YouTubeVideo implements Serializable {
 		return SkyTubeApp.getPreferenceManager().getStringSet(SkyTubeApp.getStr(R.string.pref_key_preferred_languages), defaultPrefLanguages);
 	}
 
+	public void getDesiredStream(GetDesiredStreamListener listener) {
+		new GetStreamTask(listener).executeInParallel();
+
+	}
+
+	/**
+	 * Retrieve the desired stream for this video.
+	 */
+	private class GetStreamTask extends AsyncTaskParallel<Void, Exception, StreamMetaDataList> {
+
+		private GetDesiredStreamListener listener;
+
+		public GetStreamTask(GetDesiredStreamListener listener) {
+			this.listener = listener;
+		}
+
+		@Override
+		protected StreamMetaDataList doInBackground(Void... param) {
+			return getVideoStreamList();
+		}
+
+
+		@Override
+		protected void onPostExecute(StreamMetaDataList streamMetaDataList) {
+			if (streamMetaDataList == null || streamMetaDataList.size() <= 0) {
+				listener.onGetDesiredStreamError(streamMetaDataList.getErrorMessage());
+			} else {
+				Log.i(TAG, streamMetaDataList.toString());
+
+				// get the desired stream based on user preferences
+				StreamMetaData desiredStream = streamMetaDataList.getDesiredStream();
+
+				listener.onGetDesiredStream(desiredStream);
+			}
+		}
+	}
 }

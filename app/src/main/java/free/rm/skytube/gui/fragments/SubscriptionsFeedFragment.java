@@ -28,7 +28,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.AsyncTaskParallel;
 import free.rm.skytube.businessobjects.GetSubscriptionVideosTask;
@@ -52,7 +52,7 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Sub
 	private MaterialDialog progressDialog;
 	private boolean shouldRefresh = false;
 
-	@Bind(R.id.noSubscriptionsText)
+	@BindView(R.id.noSubscriptionsText)
 	View noSubscriptionsText;
 
 	@Override

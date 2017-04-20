@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+	android:key="@string/key_preferences">
 
 	<!--
 		Skytube
@@ -42,6 +43,7 @@
 	</PreferenceCategory>
 
 	<!--
+<<<<<<< HEAD
 		Other Category
 	-->
 	<PreferenceCategory
@@ -58,6 +60,19 @@
 			android:summary="@string/pref_summary_youtube_api_key"
 			android:dialogTitle="@string/pref_title_youtube_api_key" />
 	</PreferenceCategory>
+
+	<!--
+		Chromecast Category
+	-->
+	<PreferenceCategory
+		android:title="@string/pref_chromecast_category"
+		android:key="@string/pref_key_chromecast_category">
+		<ListPreference
+			android:key="@string/pref_key_autocast"
+			android:title="@string/pref_title_autocast"
+			android:summary="@string/pref_summary_autocast"/>
+	</PreferenceCategory>
+
 	<!--
 		About Category
 	 -->
