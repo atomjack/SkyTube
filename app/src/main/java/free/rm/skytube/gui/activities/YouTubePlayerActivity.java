@@ -35,8 +35,6 @@ import free.rm.skytube.gui.fragments.YouTubePlayerFragment;
  */
 public class YouTubePlayerActivity extends BaseActivity {
 
-	public static final String YOUTUBE_VIDEO_OBJ = "YouTubePlayerActivity.yt_video_obj";
-
 	public static final int YOUTUBE_PLAYER_RESUME_RESULT = 1138;
 	private YouTubePlayerFragment youTubePlayerFragment;
 	public static final String YOUTUBE_VIDEO = "YouTubePlayerActivity.YouTubeVideo";

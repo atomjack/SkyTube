@@ -33,6 +33,7 @@ import free.rm.skytube.businessobjects.YouTubeVideo;
 import free.rm.skytube.gui.activities.BaseActivity;
 import free.rm.skytube.gui.activities.YouTubePlayerActivity;
 import free.rm.skytube.gui.app.SkyTubeApp;
+import free.rm.skytube.gui.fragments.YouTubePlayerFragment;
 
 /**
  * Launches YouTube player.
@@ -120,7 +121,7 @@ public class YouTubePlayer {
 	 */
 	private static void launchCustomYouTubePlayer(YouTubeVideo youTubeVideo, Context context) {
 		Intent i = new Intent(context, YouTubePlayerActivity.class);
-		i.putExtra(YouTubePlayerActivity.YOUTUBE_VIDEO_OBJ, youTubeVideo);
+		i.putExtra(YouTubePlayerFragment.YOUTUBE_VIDEO_OBJ, youTubeVideo);
 		((BaseActivity)context).startActivityForResult(i, YouTubePlayerActivity.YOUTUBE_PLAYER_RESUME_RESULT);
 	}
 
