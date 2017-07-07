@@ -47,6 +47,10 @@ public class SubscriptionsDb extends SQLiteOpenHelperEx {
 	private static final int DATABASE_VERSION = 2;
 	private static final String DATABASE_NAME = "subs.db";
 
+	// boolean to determine if subscriptions have been updated. SubscriptionsFeedFragment will use this to determine whether or not
+	// it should refresh the recyclerview
+	private boolean subscriptionsUpdated = false;
+
 
 	private SubscriptionsDb(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -95,6 +99,7 @@ public class SubscriptionsDb extends SQLiteOpenHelperEx {
 		values.put(SubscriptionsTable.COL_LAST_VISIT_TIME, System.currentTimeMillis());
 
 		saveChannelVideos(channel);
+		subscriptionsUpdated = true;
 		return getWritableDatabase().insert(SubscriptionsTable.TABLE_NAME, null, values) != -1;
 	}
 
@@ -115,6 +120,7 @@ public class SubscriptionsDb extends SQLiteOpenHelperEx {
 				SubscriptionsTable.COL_CHANNEL_ID + " = ?",
 				new String[]{channel.getId()});
 
+		subscriptionsUpdated = true;
 		return (rowsDeleted >= 0);
 	}
 
@@ -326,4 +332,11 @@ public class SubscriptionsDb extends SQLiteOpenHelperEx {
 		return videos;
 	}
 
+	public boolean isSubscriptionsUpdated() {
+		return subscriptionsUpdated;
+	}
+
+	public void setSubscriptionsUpdated(boolean subscriptionsUpdated) {
+		this.subscriptionsUpdated = subscriptionsUpdated;
+	}
 }

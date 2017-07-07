@@ -119,7 +119,7 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Sub
 					if(numVideosFetched > 0 || videosDeleted) {
 						new SetVideosListTask().executeInParallel();
 					} else {
-						// Only show the toast that no videos were found if the progress dialog is sh
+						// Only show the toast that no videos were found if the progress dialog is showing
 						if(fragmentIsVisible) {
 							Toast.makeText(getContext(),
 											String.format(getContext().getString(R.string.no_new_videos_found)),
@@ -131,6 +131,15 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Sub
 		}
 	}
 
+	@Override
+	public void onStart() {
+		super.onStart();
+		// If any channels have been subscribed to/unsubscribed from, refresh the video grid to show the change.
+		if(SubscriptionsDb.getSubscriptionsDb().isSubscriptionsUpdated()) {
+			new SetVideosListTask().executeInParallel();
+			SubscriptionsDb.getSubscriptionsDb().setSubscriptionsUpdated(false);
+		}
+	}
 
 	@Override
 	public void onFragmentSelected() {
@@ -176,6 +185,7 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Sub
 			if (numChannelsSubscribed <= 0) {
 				swipeRefreshLayout.setVisibility(View.GONE);
 				noSubscriptionsText.setVisibility(View.VISIBLE);
+				shouldRefresh = false;
 			} else {
 				if(swipeRefreshLayout.getVisibility() != View.VISIBLE) {
 					swipeRefreshLayout.setVisibility(View.VISIBLE);
@@ -242,6 +252,16 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Sub
 		@Override
 		protected void onPostExecute(List<YouTubeVideo> youTubeVideos) {
 			videoGridAdapter.setList(youTubeVideos);
+			// We've updated the list of videos in the video grid. If we aren't subscribed to any channels, hide the video grid and show the no subs text.
+			// Otherwise do the opposite. This is needed when the user subscribes to their first channel, or when they unsubscribe to the only channel they
+			// are subscribed to.
+			if(SubscriptionsDb.getSubscriptionsDb().getTotalSubscribedChannels() == 0) {
+				swipeRefreshLayout.setVisibility(View.GONE);
+				noSubscriptionsText.setVisibility(View.VISIBLE);
+			} else {
+				swipeRefreshLayout.setVisibility(View.VISIBLE);
+				noSubscriptionsText.setVisibility(View.GONE);
+			}
 		}
 
 	}
