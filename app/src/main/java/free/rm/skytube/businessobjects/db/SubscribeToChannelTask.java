@@ -56,7 +56,10 @@ public class SubscribeToChannelTask extends AsyncTask<Void, Void, Boolean> {
 	@Override
 	protected Boolean doInBackground(Void... params) {
 		if (subscribeToChannel) {
-			return SubscriptionsDb.getSubscriptionsDb().subscribe(channel);
+			boolean subscribed = SubscriptionsDb.getSubscriptionsDb().subscribe(channel);
+			if(subscribed)
+				SkyTubeApp.getInstance().updateFeedTab = true;
+			return subscribed;
 		} else {
 			return SubscriptionsDb.getSubscriptionsDb().unsubscribe(channel);
 		}

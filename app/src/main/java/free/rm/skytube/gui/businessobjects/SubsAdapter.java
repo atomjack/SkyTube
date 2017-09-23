@@ -31,9 +31,9 @@ import com.bumptech.glide.Glide;
 import java.util.Iterator;
 
 import free.rm.skytube.R;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.YouTubeChannel;
 import free.rm.skytube.businessobjects.db.GetSubscribedChannelsTask;
+import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 
 /**
  * Channel subscriptions adapter: Contains a list of channels (that the user subscribed to) together

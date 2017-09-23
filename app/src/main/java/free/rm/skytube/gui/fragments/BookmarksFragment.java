@@ -24,13 +24,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
 import free.rm.skytube.businessobjects.AsyncTaskParallel;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.VideoCategory;
 import free.rm.skytube.businessobjects.db.BookmarksDb;
+import free.rm.skytube.businessobjects.interfaces.MainActivityListener;
 import free.rm.skytube.gui.businessobjects.SimpleItemTouchHelperCallback;
 import free.rm.skytube.gui.businessobjects.bookmarksGridAdapter;
 
@@ -38,7 +38,7 @@ import free.rm.skytube.gui.businessobjects.bookmarksGridAdapter;
  * Fragment that displays bookmarked videos.
  */
 public class BookmarksFragment extends VideosGridFragment implements BookmarksDb.BookmarksDbListener {
-	@Bind(R.id.noBookmarkedVideosText)
+	@BindView(R.id.noBookmarkedVideosText)
 	View noBookmarkedVideosText;
 
 	private bookmarksGridAdapter bookmarksGridAdapter;

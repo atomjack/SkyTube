@@ -23,11 +23,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
+import android.support.multidex.MultiDex;
 import android.support.multidex.MultiDexApplication;
 import android.support.v4.content.IntentCompat;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import free.rm.skytube.businessobjects.db.SubscriptionsDb;
 
 /**
  * SkyTube application.
@@ -35,10 +40,15 @@ import java.util.List;
 public class SkyTubeApp extends MultiDexApplication {
 
 	/** SkyTube Application databaseInstance. */
-	private static SkyTubeApp skyTubeApp = null;
+	protected static SkyTubeApp skyTubeApp = null;
+	private static volatile SubscriptionsDb subscriptionsDb = null;
 
 	public static final String KEY_SUBSCRIPTIONS_LAST_UPDATED = "SkyTubeApp.KEY_SUBSCRIPTIONS_LAST_UPDATED";
 	public static String KEY_SET_UPDATE_FEED_TAB = "SkyTubeApp.KEY_SET_UPDATE_FEED_TAB";
+	public boolean connectedToChromecast = false;
+	public boolean connectingToChromecast = false;
+	public Map<String, String> chromecastDevices = new HashMap<>();
+	public boolean updateFeedTab = false;
 
 	@Override
 	public void onCreate() {
@@ -46,6 +56,9 @@ public class SkyTubeApp extends MultiDexApplication {
 		skyTubeApp = this;
 	}
 
+	public static SkyTubeApp getInstance() {
+		return skyTubeApp;
+	}
 
 	/**
 	 * Returns a localised string.
@@ -108,7 +121,6 @@ public class SkyTubeApp extends MultiDexApplication {
 		return skyTubeApp.getBaseContext();
 	}
 
-
 	/**
 	 * Restart the app.
 	 */
@@ -122,4 +134,9 @@ public class SkyTubeApp extends MultiDexApplication {
 		System.exit(0);
 	}
 
+	@Override
+	protected void attachBaseContext(Context base) {
+		super.attachBaseContext(base);
+		MultiDex.install(this);
+	}
 }

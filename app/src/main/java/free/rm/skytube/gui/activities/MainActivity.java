@@ -21,13 +21,11 @@ import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,11 +34,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
-import free.rm.skytube.businessobjects.MainActivityListener;
 import free.rm.skytube.businessobjects.YouTubeChannel;
 import free.rm.skytube.gui.businessobjects.SubsAdapter;
 import free.rm.skytube.gui.businessobjects.YouTubePlayer;
@@ -52,15 +49,15 @@ import free.rm.skytube.gui.fragments.SearchVideoGridFragment;
 /**
  * Main activity (launcher).  This activity holds {@link free.rm.skytube.gui.fragments.VideosGridFragment}.
  */
-public class MainActivity extends AppCompatActivity implements MainActivityListener {
-	@Bind(R.id.fragment_container)
+public class MainActivity extends BaseActivity {
+	@BindView(R.id.fragment_container)
 	protected FrameLayout fragmentContainer;
 
 	private MainFragment mainFragment;
 	private SearchVideoGridFragment searchVideoGridFragment;
 	private ChannelBrowserFragment channelBrowserFragment;
 
-	/** Set to true of the UpdatesCheckerTask has run; false otherwise. */
+	/** Set to true if the UpdatesCheckerTask has run; false otherwise. */
 	private static boolean updatesCheckerTaskRan = false;
 	public static final String ACTION_VIEW_CHANNEL = "MainActivity.ViewChannel";
 	private static final String MAIN_FRAGMENT   = "MainActivity.MainFragment";
@@ -81,6 +78,11 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 		}
 
 		setContentView(R.layout.activity_main);
+
+		// The Extra variant needs to initialize some Fragments that are used for Chromecast control. This is done in onLayoutSet of BaseActivity.
+		// The OSS variant has a no-op version of this method, since it doesn't need to do anything else here.
+		onLayoutSet();
+		
 		ButterKnife.bind(this);
 
 		if(fragmentContainer != null) {
@@ -108,16 +110,14 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 
 	/**
 	 * When subscriptions are imported from a Google/YouTube account, via the Preferences screen (PreferencesActivity),
-	 * the boolean #SkyTubeApp.KEY_SET_UPDATE_FEED_TAB will get set to true. When we return to this activity afterwards,
+	 * the boolean {@link SkyTubeApp.updateFeedTab} will get set to true. When we return to this activity afterwards,
 	 * reset the boolean and update the Feed tab so that the videos from the newly subscribed channels are shown.
 	 */
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if(SkyTubeApp.getPreferenceManager().getBoolean(SkyTubeApp.KEY_SET_UPDATE_FEED_TAB, false)) {
-			SharedPreferences.Editor editor = SkyTubeApp.getPreferenceManager().edit();
-			editor.putBoolean(SkyTubeApp.KEY_SET_UPDATE_FEED_TAB, false);
-			editor.commit();
+		if(SkyTubeApp.getInstance().updateFeedTab) {
+			SkyTubeApp.getInstance().updateFeedTab = false;
 			onSubscriptionsImported();
 		}
 	}
@@ -136,8 +136,11 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 
 	@Override
 	public boolean onCreateOptionsMenu(final Menu menu) {
+		super.onCreateOptionsMenu(menu);
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.main_activity_menu, menu);
+
+		onOptionsMenuCreated(menu);
 
 		// setup the SearchView (actionbar)
 		final MenuItem searchItem = menu.findItem(R.id.menu_search);
@@ -247,23 +250,34 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 		return item;
 	}
 
-
-	@Override
+	/**
+	 * For the extra variant, if the Chromecast Controller is visible and expanded, we want to collapse it. So, we must
+	 * intercept onBackPressed to make sure it doesn't return us to the homescreen. shouldMinimizeOnBack will take care
+	 * of this - on the Extra variant, if the Chromecast Controller is visible and expanded, it will collapse it, and
+	 * return false, thus the app will not exit nor will it return to the homescreen. If it's collapsed, or not visible,
+	 * it will return true, which then will check if the mainFragment is visible (as opposed to searchFragment). If it is,
+	 * it will return to the home screen without exiting, otherwise it will do super.onBackPressed (so in searchFragment,
+	 * it will exit from that and return to mainFragment).
+	 *
+	 * On the OSS variant, shouldMinimizeOnBack will always return true, and the normal checks for mainFragment being visible
+	 * will be done.
+	 */
 	public void onBackPressed() {
-		if (mainFragment != null  &&  mainFragment.isVisible()) {
-			// On Android, when the user presses back button, the Activity is destroyed and will be
-			// recreated when the user relaunches the app.
-			// We do not want that behaviour, instead then the back button is pressed, the app will
-			// be **minimized**.
-			Intent startMain = new Intent(Intent.ACTION_MAIN);
-			startMain.addCategory(Intent.CATEGORY_HOME);
-			startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(startMain);
-		} else {
-			super.onBackPressed();
+		if(shouldMinimizeOnBack()) {
+			if (mainFragment != null && mainFragment.isVisible()) {
+				// On Android, when the user presses back button, the Activity is destroyed and will be
+				// recreated when the user relaunches the app.
+				// We do not want that behaviour, instead when the back button is pressed, the app will
+				// be **minimized**.
+				Intent startMain = new Intent(Intent.ACTION_MAIN);
+				startMain.addCategory(Intent.CATEGORY_HOME);
+				startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(startMain);
+			} else {
+				super.onBackPressed();
+			}
 		}
 	}
-
 
 	private void switchToFragment(Fragment fragment) {
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();

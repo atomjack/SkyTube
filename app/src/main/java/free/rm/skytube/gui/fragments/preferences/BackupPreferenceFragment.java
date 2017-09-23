@@ -18,7 +18,6 @@
 package free.rm.skytube.gui.fragments.preferences;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
@@ -46,9 +45,7 @@ public class BackupPreferenceFragment extends PreferenceFragment {
 			@Override
 			public void run() {
 				// Need to make sure when we come back to MainActivity, that we refresh the Feed tab so it shows videos from the newly subscribed channels
-				SharedPreferences.Editor editor = SkyTubeApp.getPreferenceManager().edit();
-				editor.putBoolean(SkyTubeApp.KEY_SET_UPDATE_FEED_TAB, true);
-				editor.commit();
+				SkyTubeApp.getInstance().updateFeedTab = true;
 			}
 		});
 
