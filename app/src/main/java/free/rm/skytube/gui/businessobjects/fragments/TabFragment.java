@@ -55,7 +55,7 @@ public abstract class TabFragment extends FragmentEx {
 	}
 
 
-	protected boolean isFragmentSelected() {
+	public boolean isFragmentSelected() {
 		return isFragmentSelected;
 	}
 

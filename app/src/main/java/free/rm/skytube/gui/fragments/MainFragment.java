@@ -25,6 +25,7 @@ import java.util.List;
 
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.db.BookmarksDb;
+import free.rm.skytube.gui.businessobjects.Logger;
 import free.rm.skytube.gui.businessobjects.fragments.FragmentEx;
 import free.rm.skytube.gui.businessobjects.MainActivityListener;
 import free.rm.skytube.gui.businessobjects.SubsAdapter;
@@ -101,6 +102,7 @@ public class MainFragment extends FragmentEx {
 
 			@Override
 			public void onTabUnselected(TabLayout.Tab tab) {
+				Logger.d(MainFragment.this, "refresh stuff, on tab unselected: %s", videoGridFragmentsList.get(tab.getPosition()));
 				videoGridFragmentsList.get(tab.getPosition()).onFragmentUnselected();
 			}
 
@@ -123,7 +125,10 @@ public class MainFragment extends FragmentEx {
 		// Set the current viewpager fragment as selected, as when the Activity is recreated, the Fragment
 		// won't know that it's selected. When the Feeds fragment is the default tab, this will prevent the
 		// refresh dialog from showing when an automatic refresh happens.
+		Logger.d(this, "refresh stuff, setting current tab as selected: %s", videoGridFragmentsList.get(viewPager.getCurrentItem()));
+		Logger.d(this, "refresh stuff, feed tab: %s", subscriptionsFeedFragment);
 		videoGridFragmentsList.get(viewPager.getCurrentItem()).onFragmentSelected();
+		Logger.d(this, "refresh stuff, is feed fragment selected? %s", subscriptionsFeedFragment.isFragmentSelected());
 
 		return view;
 	}
@@ -163,8 +168,10 @@ public class MainFragment extends FragmentEx {
 			if (mostPopularVideosFragment == null)
 				mostPopularVideosFragment = new MostPopularVideosFragment();
 
-			if (subscriptionsFeedFragment == null)
+			if (subscriptionsFeedFragment == null) {
+				Logger.d(this, "refresh stuff, setting new subs feed fragment");
 				subscriptionsFeedFragment = new SubscriptionsFeedFragment();
+			}
 
 			if (bookmarksFragment == null) {
 				bookmarksFragment = new BookmarksFragment();

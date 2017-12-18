@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -48,6 +49,7 @@ import free.rm.skytube.businessobjects.YouTubeChannel;
 import free.rm.skytube.businessobjects.YouTubeVideo;
 import free.rm.skytube.businessobjects.db.SubscriptionsDb;
 import free.rm.skytube.gui.businessobjects.GetSubscriptionVideosTaskListener;
+import free.rm.skytube.gui.businessobjects.Logger;
 import free.rm.skytube.gui.businessobjects.SubsAdapter;
 import free.rm.skytube.gui.businessobjects.SubscriptionsBackupsManager;
 
@@ -72,23 +74,27 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Get
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Logger.d(this, "refresh stuff, onCreate");
 
 		// Only do an automatic refresh of subscriptions if it's been more than three hours since the last one was done.
 		long l = SkyTubeApp.getPreferenceManager().getLong(SkyTubeApp.KEY_SUBSCRIPTIONS_LAST_UPDATED, -1);
 		DateTime subscriptionsLastUpdated = new DateTime(l);
-		DateTime threeHoursAgo = new DateTime().minusHours(3);
+		DateTime threeHoursAgo = new DateTime().minusSeconds(10); //.minusHours(3);
 		if(subscriptionsLastUpdated.isBefore(threeHoursAgo)) {
 			shouldRefresh = true;
+			Logger.d(this, "Should refresh!!!");
 		}
 
 		setLayoutResource(R.layout.videos_gridview_feed);
 		subscriptionsBackupsManager = new SubscriptionsBackupsManager(getActivity(), SubscriptionsFeedFragment.this);
 	}
 
+
 	@Override
 	public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
+		Logger.d(this, "refresh stuff, is fragment selected? %s, this: %s", isFragmentSelected(), this);
 		new GetTotalNumberOfChannelsTask().executeInParallel();
 	}
 
@@ -198,6 +204,7 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Get
 	@Override
 	public void onFragmentSelected() {
 		super.onFragmentSelected();
+		Logger.d(this, "refresh stuff, on frag selected, this: %s", this);
 
 		// when the Subscriptions tab is selected, if a refresh is in progress, show the dialog.
 		if (refreshInProgress)
@@ -267,6 +274,7 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Get
 
 				// Launch a refresh of subscribed videos when this Fragment is created, but don't
 				// show the progress dialog if this fragment is not currently showing.
+				Logger.d(this, "Should refresh %s, is fragment selected? %s, this: %s", shouldRefresh, isFragmentSelected(), SubscriptionsFeedFragment.this);
 				if (shouldRefresh)
 					doRefresh(isFragmentSelected());
 				shouldRefresh = false;
