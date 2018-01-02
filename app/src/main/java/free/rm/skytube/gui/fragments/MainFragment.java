@@ -28,6 +28,7 @@ import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.db.BookmarksDb;
 import free.rm.skytube.businessobjects.db.DownloadedVideosDb;
 import free.rm.skytube.businessobjects.Logger;
+import free.rm.skytube.gui.activities.BaseActivity;
 import free.rm.skytube.gui.businessobjects.MainActivityListener;
 import free.rm.skytube.gui.businessobjects.adapters.SubsAdapter;
 import free.rm.skytube.gui.businessobjects.fragments.FragmentEx;
@@ -78,9 +79,15 @@ public class MainFragment extends FragmentEx {
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_main, container, false);
 
+		// For the non-oss version, when using a Chromecast, returning to this fragment from another fragment that uses
+		// CoordinatorLayout results in the SlidingUpPanel to be positioned improperly. We need to redraw the panel
+		// to fix this. The oss version just has a no-op method.
+		((BaseActivity)getActivity()).redrawPanel();
+
 		// setup the toolbar / actionbar
 		Toolbar toolbar = view.findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
 		// indicate that this fragment has an action bar menu
 		setHasOptionsMenu(true);
@@ -256,6 +263,7 @@ public class MainFragment extends FragmentEx {
 	}
 
 	/**
+<<<<<<< HEAD
 	 * Returns true if the subscriptions drawer is opened.
 	 */
 	public boolean isDrawerOpen() {
@@ -268,5 +276,13 @@ public class MainFragment extends FragmentEx {
 	 */
 	public void closeDrawer() {
 		subsDrawerLayout.closeDrawer(GravityCompat.START);
+	}
+
+	/*
+	 * Returns the SubscriptionsFeedFragment
+	 * @return {@link free.rm.skytube.gui.fragments.SubscriptionsFeedFragment}
+	 */
+	public SubscriptionsFeedFragment getSubscriptionsFeedFragment() {
+		return subscriptionsFeedFragment;
 	}
 }

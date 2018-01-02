@@ -30,6 +30,7 @@ For screenshots and more information, please visit [www.skytube-app.com](http://
 
 Open source app with extra features.  These extra features use third-party closed source libraries:
 * YouTubeAndroidPlayerApi.jar (optional usage)
+* Chromecast support
 
 Updates are published immediately: the app will notify you whenever there is an update.
 

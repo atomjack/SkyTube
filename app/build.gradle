@@ -26,6 +26,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "CHROMECAST_APP_ID", "\"39E8D587\""
+        }
+        debug {
+//            buildConfigField "String", "CHROMECAST_APP_ID", "\"39E8D587\"" // prod
+            buildConfigField "String", "CHROMECAST_APP_ID", "\"29A66E17\"" // dev
         }
     }
     flavorDimensions "skytube"
@@ -33,17 +38,23 @@ android {
         // 100% Open-Source Edition
         oss {
             applicationId "free.rm.skytube.oss"
-            versionName "2.81"          // the digits of the *fractional part* shall not be larger than "9"
+            versionName "2.90"          // the digits of the *fractional part* shall not be larger than "9"
             resValue "string", "app_name", "SkyTube"
             dimension "skytube"
         }
         // 99% Open-source edition:  uses the YouTube Player Jar [i.e. proprietary module - optional usage]
         extra {
             applicationId "free.rm.skytube.extra"
-            versionName "2.81 Extra"    // the digits of the *fractional part* shall not be larger than "9"
+            versionName "2.90 Extra"    // the digits of the *fractional part* shall not be larger than "9"
             resValue "string", "app_name", "SkyTube Extra"
             dimension "skytube"
         }
+    }
+    dexOptions {
+        jumboMode true
+    }
+    lintOptions {
+        abortOnError false
     }
 }
 
@@ -53,10 +64,11 @@ configurations {
     all {
         exclude module: 'httpclient'
     }
+    compile.exclude group: "org.apache.httpcomponents", module: "httpclient"
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
 
     nonFreeCompile files('libs/YouTubeAndroidPlayerApi.jar')
@@ -73,6 +85,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.2'
     compile group: 'joda-time', name: 'joda-time', version: '2.9.9'
     compile 'com.afollestad.material-dialogs:core:0.9.4.7'
+    compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.github.angads25:filepicker:1.1.1'
 
     compile 'com.android.support:appcompat-v7:26.1.0'
@@ -82,5 +95,14 @@ dependencies {
     compile 'com.android.support:cardview-v7:26.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:multidex:1.0.2'    // this is as we have over 65536 lines of code...
+
+    // Libraries for the Extra (non-OSS) variant
+    extraCompile files('libs/YouTubeAndroidPlayerApi.jar')
+    extraCompile 'com.android.support:mediarouter-v7:26.1.0'
+    extraCompile 'com.google.android.gms:play-services-cast-framework:11.8.0'
+    extraCompile 'com.googlecode.android-query:android-query:0.25.9'
+    extraCompile 'com.sothree.slidinguppanel:library:3.4.0'
+    extraCompile 'com.github.rahatarmanahmed:circularprogressview:2.5.0'
+    extraCompile 'com.google.apis:google-api-services-youtube:v3-rev178-1.22.0'
 }
 

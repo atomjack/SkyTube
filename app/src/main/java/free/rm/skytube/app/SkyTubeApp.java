@@ -32,14 +32,18 @@ import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.multidex.MultiDex;
 import android.support.multidex.MultiDexApplication;
 import android.support.v4.content.IntentCompat;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import free.rm.skytube.R;
 import free.rm.skytube.businessobjects.FeedUpdaterReceiver;
+import free.rm.skytube.businessobjects.db.SubscriptionsDb;
 
 /**
  * SkyTube application.
@@ -47,11 +51,15 @@ import free.rm.skytube.businessobjects.FeedUpdaterReceiver;
 public class SkyTubeApp extends MultiDexApplication {
 
 	/** SkyTube Application databaseInstance. */
-	private static SkyTubeApp skyTubeApp = null;
+	protected static SkyTubeApp skyTubeApp = null;
 
 	public static final String KEY_SUBSCRIPTIONS_LAST_UPDATED = "SkyTubeApp.KEY_SUBSCRIPTIONS_LAST_UPDATED";
 	public static final String NEW_VIDEOS_NOTIFICATION_CHANNEL = "free.rm.skytube.NEW_VIDEOS_NOTIFICATION_CHANNEL";
 	public static final int NEW_VIDEOS_NOTIFICATION_CHANNEL_ID = 1;
+
+	public boolean connectedToChromecast = false;
+	public boolean connectingToChromecast = false;
+	public Map<String, String> chromecastDevices = new HashMap<>();
 
 	@Override
 	public void onCreate() {
@@ -60,6 +68,9 @@ public class SkyTubeApp extends MultiDexApplication {
 		initChannels(this);
 	}
 
+	public static SkyTubeApp getInstance() {
+		return skyTubeApp;
+	}
 
 	/**
 	 * Returns a localised string.
@@ -122,7 +133,6 @@ public class SkyTubeApp extends MultiDexApplication {
 		return skyTubeApp.getBaseContext();
 	}
 
-
 	/**
 	 * Restart the app.
 	 */
@@ -135,7 +145,6 @@ public class SkyTubeApp extends MultiDexApplication {
 		context.startActivity(mainIntent);
 		System.exit(0);
 	}
-
 
 	/**
 	 * @return  True if the device is a tablet; false otherwise.
@@ -211,4 +220,9 @@ public class SkyTubeApp extends MultiDexApplication {
 		}
 	}
 
+	@Override
+	protected void attachBaseContext(Context base) {
+		super.attachBaseContext(base);
+		MultiDex.install(this);
+	}
 }

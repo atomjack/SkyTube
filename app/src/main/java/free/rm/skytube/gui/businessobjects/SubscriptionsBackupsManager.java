@@ -431,7 +431,6 @@ public class SubscriptionsBackupsManager {
 			return channels[0].size();
 		}
 
-
 		@Override
 		protected void onPostExecute(Integer totalChannelsSubscribedTo) {
 			// inform the SubsAdapter that it needs to repopulate the subbed channels list

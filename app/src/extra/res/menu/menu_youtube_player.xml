@@ -2,8 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
 	  xmlns:app="http://schemas.android.com/apk/res-auto">
 
-	<!-- NOTE: Any changes made to this menu file should also be made to the Extra variant version.
-			The Extra variant version includes the Cast icon for casting to a Chromecast. -->
+	<item
+		android:id="@+id/media_route_menu_item"
+		android:title="@string/media_route_menu_title"
+		app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+		app:showAsAction="always"/>
 
 	<item android:id="@+id/menu_reload_video"
 		  android:title="@string/get_new_video_steam"
@@ -15,24 +18,24 @@
 		  app:showAsAction="never"/>
 
 	<item android:id="@+id/share"
-	      android:title="@string/share_via"
-	      app:showAsAction="never"/>
+		  android:title="@string/share_via"
+		  app:showAsAction="never"/>
 
 	<item android:id="@+id/copyurl"
-	      android:title="@string/copy_url"
-	      app:showAsAction="never"/>
+		  android:title="@string/copy_url"
+		  app:showAsAction="never"/>
 
 	<item android:id="@+id/bookmark_video"
-	      android:title="@string/bookmark"
-	      app:showAsAction="never"/>
+		  android:title="@string/bookmark"
+		  app:showAsAction="never"/>
 
 	<item android:id="@+id/unbookmark_video"
-	      android:title="@string/unbookmark"
-	      app:showAsAction="never"/>
+		  android:title="@string/unbookmark"
+		  app:showAsAction="never"/>
 
 	<item android:id="@+id/view_thumbnail"
-	      android:title="@string/view_thumbnail"
-	      app:showAsAction="never"/>
+		  android:title="@string/view_thumbnail"
+		  app:showAsAction="never"/>
 
 	<item android:id="@+id/download_video"
 		  android:title="@string/download_video"

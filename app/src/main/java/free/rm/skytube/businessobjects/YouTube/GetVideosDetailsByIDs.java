@@ -30,12 +30,20 @@ public class GetVideosDetailsByIDs extends GetFeaturedVideos {
 	 * Initialise object.
 	 *
 	 * @param videoIds		Comma separated videos IDs.
+	 * @param includeDescription	Whether or not to include the description with this request.
 	 * @throws IOException
 	 */
-	public void init(String videoIds) throws IOException {
+	public void init(String videoIds, boolean includeDescription) throws IOException {
 		super.init();
 		super.videosList.setId(videoIds);
 		super.videosList.setChart(null);
+		if(includeDescription)
+			super.videosList.setFields("items(id, snippet/description, snippet/defaultAudioLanguage, snippet/defaultLanguage, snippet/publishedAt, snippet/title, snippet/channelId, snippet/channelTitle," +
+							"snippet/thumbnails/high, contentDetails/duration, statistics)," +
+							"nextPageToken");
 	}
 
+	public void init(String videoIds) throws IOException {
+		init(videoIds, false);
+	}
 }
