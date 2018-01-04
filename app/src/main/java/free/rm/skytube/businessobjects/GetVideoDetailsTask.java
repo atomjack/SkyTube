@@ -1,7 +1,6 @@
 package free.rm.skytube.businessobjects;
 
 import android.content.Intent;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -22,8 +21,6 @@ public class GetVideoDetailsTask extends AsyncTaskParallel<Void, Void, YouTubeVi
 
 	private String videoUrl = null;
 	private GetVideoDetailsListener listener;
-	private boolean includeDescription = false;
-	private static final String TAG = GetVideoDetailsTask.class.getSimpleName();
 
 	public GetVideoDetailsTask(String videoUrl, GetVideoDetailsListener listener) {
 		this.videoUrl = videoUrl;
@@ -38,11 +35,10 @@ public class GetVideoDetailsTask extends AsyncTaskParallel<Void, Void, YouTubeVi
 			// Hence we need to decode them first...
 			videoUrl = URLDecoder.decode(url, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			Log.e(TAG, "UnsupportedEncodingException on " + videoUrl + " encoding = UTF-8", e);
+			Logger.d(this, "UnsupportedEncodingException on " + videoUrl + " encoding = UTF-8", e);
 			videoUrl = url;
 		}
 		this.listener = listener;
-		this.includeDescription = includeDescription;
 	}
 
 	public GetVideoDetailsTask(Intent intent, GetVideoDetailsListener listener) {
@@ -62,7 +58,7 @@ public class GetVideoDetailsTask extends AsyncTaskParallel<Void, Void, YouTubeVi
 		if (videoId != null) {
 			try {
 				GetVideosDetailsByIDs getVideo = new GetVideosDetailsByIDs();
-				getVideo.init(videoId, includeDescription);
+				getVideo.init(videoId);
 				List<YouTubeVideo> youTubeVideos = getVideo.getNextVideos();
 
 				if (youTubeVideos.size() > 0)

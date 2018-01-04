@@ -409,7 +409,7 @@ public class MainActivity extends BaseActivity {
 
 	/**
 	 * This will tell the SubscriptionsFeedFragment (which lives in MainFragment) that it should refresh its video grid.
-	 * This happens when a channel is subscribed to/unsubscribed from.
+	 * This happens when a channel is subscribed to/unsubscribed from. This is called from {@link free.rm.skytube.gui.fragments.ChromecastMiniControllerFragment}.
 	 */
 	@Override
 	public void refreshSubscriptionsFeedVideos() {
