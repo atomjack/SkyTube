@@ -207,7 +207,8 @@ public class SkyTubeApp extends MultiDexApplication {
 
 		// Feed Auto Updater has been cancelled. If the selected interval is greater than 0, set the new alarm to call FeedUpdaterService
 		if(interval > 0) {
-			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime()+interval, interval, pendingIntent);
+//			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime()+interval, interval, pendingIntent);
+			alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, 5000, interval, pendingIntent);
 		}
 	}
 

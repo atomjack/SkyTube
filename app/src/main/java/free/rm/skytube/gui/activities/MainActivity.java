@@ -39,6 +39,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
+import free.rm.skytube.businessobjects.Logger;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeChannel;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubePlaylist;
 import free.rm.skytube.businessobjects.db.DownloadedVideosDb;
@@ -113,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityListe
 					// If we're coming here via a click on the Notification that new videos for subscribed channels have been found, make sure to
 					// select the Feed tab.
 					if(action != null && action.equals(ACTION_VIEW_FEED)) {
+						Logger.d(this, "ACTION_VIEW_FEED");
 						Bundle args = new Bundle();
 						args.putBoolean(MainFragment.SHOULD_SELECTED_FEED_TAB, true);
 						mainFragment.setArguments(args);
