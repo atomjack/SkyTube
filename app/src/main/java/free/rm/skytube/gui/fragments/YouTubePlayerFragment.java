@@ -46,9 +46,11 @@ import free.rm.skytube.businessobjects.YouTube.Tasks.GetVideoDescriptionTask;
 import free.rm.skytube.businessobjects.YouTube.Tasks.GetYouTubeChannelInfoTask;
 import free.rm.skytube.businessobjects.YouTube.VideoStream.StreamMetaData;
 import free.rm.skytube.businessobjects.db.DownloadedVideosDb;
+import free.rm.skytube.businessobjects.db.PlaybackHistoryDb;
 import free.rm.skytube.businessobjects.db.Tasks.CheckIfUserSubbedToChannelTask;
 import free.rm.skytube.businessobjects.db.Tasks.IsVideoBookmarkedTask;
 import free.rm.skytube.businessobjects.interfaces.GetDesiredStreamListener;
+import free.rm.skytube.businessobjects.interfaces.YouTubePlayerFragmentInterface;
 import free.rm.skytube.gui.activities.MainActivity;
 import free.rm.skytube.gui.activities.ThumbnailViewerActivity;
 import free.rm.skytube.gui.businessobjects.MediaControllerEx;
@@ -63,7 +65,7 @@ import hollowsoft.slidingdrawer.SlidingDrawer;
 /**
  * A fragment that holds a standalone YouTube player.
  */
-public class YouTubePlayerFragment extends ImmersiveModeFragment implements MediaPlayer.OnPreparedListener, YouTubeVideoListener {
+public class YouTubePlayerFragment extends ImmersiveModeFragment implements MediaPlayer.OnPreparedListener, YouTubeVideoListener, MediaPlayer.OnCompletionListener, YouTubePlayerFragmentInterface {
 
 	public static final String YOUTUBE_VIDEO_OBJ = "YouTubePlayerFragment.yt_video_obj";
 
@@ -187,6 +189,7 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 				return false;
 			}
 		});
+		videoView.setOnCompletionListener(this);
 		// play the video once its loaded
 		videoView.setOnPreparedListener(this);
 
@@ -910,5 +913,17 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 		}
 
 		return url;
+	}
+
+	@Override
+	public void onCompletion(MediaPlayer mediaPlayer) {
+		int pos = mediaPlayer.getCurrentPosition();
+		Logger.d(this, "Current position: %d", pos);
+	}
+
+	@Override
+	public void videoPlaybackStopped() {
+		Logger.d(this, "stopped: %d", videoView.getCurrentPosition());
+		PlaybackHistoryDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, videoView.getCurrentPosition());
 	}
 }

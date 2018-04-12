@@ -35,6 +35,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -74,13 +75,16 @@ import free.rm.skytube.businessobjects.YouTube.Tasks.GetVideoDescriptionTask;
 import free.rm.skytube.businessobjects.YouTube.Tasks.GetYouTubeChannelInfoTask;
 import free.rm.skytube.businessobjects.YouTube.VideoStream.StreamMetaData;
 import free.rm.skytube.businessobjects.db.DownloadedVideosDb;
+import free.rm.skytube.businessobjects.db.PlaybackHistoryDb;
 import free.rm.skytube.businessobjects.db.Tasks.CheckIfUserSubbedToChannelTask;
 import free.rm.skytube.businessobjects.db.Tasks.IsVideoBookmarkedTask;
 import free.rm.skytube.businessobjects.interfaces.GetDesiredStreamListener;
+import free.rm.skytube.businessobjects.interfaces.YouTubePlayerFragmentInterface;
 import free.rm.skytube.gui.activities.MainActivity;
 import free.rm.skytube.gui.activities.ThumbnailViewerActivity;
 import free.rm.skytube.gui.businessobjects.PlayerViewGestureDetector;
 import free.rm.skytube.gui.businessobjects.SubscribeButton;
+import free.rm.skytube.gui.businessobjects.YouTubePlayer;
 import free.rm.skytube.gui.businessobjects.adapters.CommentsAdapter;
 import free.rm.skytube.gui.businessobjects.fragments.ImmersiveModeFragment;
 import hollowsoft.slidingdrawer.OnDrawerOpenListener;
@@ -89,13 +93,14 @@ import hollowsoft.slidingdrawer.SlidingDrawer;
 /**
  * A fragment that holds a standalone YouTube player (version 2).
  */
-public class YouTubePlayerV2Fragment extends ImmersiveModeFragment {
+public class YouTubePlayerV2Fragment extends ImmersiveModeFragment implements YouTubePlayerFragmentInterface {
 
 	private YouTubeVideo		youTubeVideo = null;
 	private YouTubeChannel      youTubeChannel = null;
 
 	private PlayerView          playerView;
 	private SimpleExoPlayer     player;
+	private long								playerInitialPosition = 0;
 
 	private Menu                menu = null;
 
@@ -258,6 +263,27 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment {
 			videoDescRatingsDisabledTextView.setVisibility(View.VISIBLE);
 		}
 
+		//
+		if(PlaybackHistoryDb.getVideoDownloadsDb().getVideoPosition(youTubeVideo) > -1) {
+			/*
+			final AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+				.setTitle(R.string.enter_video_url)
+				.setPositiveButton(R.string.play, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// get the inputted URL string
+						final String videoUrl = ((EditText)((AlertDialog) dialog).findViewById(R.id.dialog_url_edittext)).getText().toString();
+
+						// play the video
+						YouTubePlayer.launch(videoUrl, getActivity());
+					}
+				})
+				.setNegativeButton(R.string.cancel, null)
+				.show();
+				*/
+			playerInitialPosition = PlaybackHistoryDb.getVideoDownloadsDb().getVideoPosition(youTubeVideo);
+		}
+
 		loadVideo();
 	}
 
@@ -348,6 +374,8 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment {
 		ExtractorMediaSource.Factory extMediaSourceFactory = new ExtractorMediaSource.Factory(dataSourceFactory);
 		ExtractorMediaSource mediaSource = extMediaSourceFactory.createMediaSource(videoUri);
 		player.prepare(mediaSource);
+		if(playerInitialPosition > 0)
+			player.seekTo(playerInitialPosition);
 	}
 
 
@@ -853,4 +881,9 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment {
 
 	}
 
+	@Override
+	public void videoPlaybackStopped() {
+		Logger.d(this, "stopped: %d", player.getCurrentPosition());
+		PlaybackHistoryDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, player.getCurrentPosition());
+	}
 }
