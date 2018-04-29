@@ -163,32 +163,37 @@ class GridViewHolder extends RecyclerView.ViewHolder {
 			thumbsUpPercentageTextView.setVisibility(View.INVISIBLE);
 		}
 
-		// Reposition the videoWatchedTriangle so it appears directly below the bottom of titleTextView
-		titleTextView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-			@Override
-			public boolean onPreDraw() {
-				ViewGroup.MarginLayoutParams videoWatchedTriangleParams = (ViewGroup.MarginLayoutParams) videoWatchedTriangle.getLayoutParams();
-				videoWatchedTriangleParams.topMargin = titleTextView.getHeight();
-				videoWatchedTriangle.setLayoutParams(videoWatchedTriangleParams);
-				return true;
-			}
-		});
-
-		PlaybackStatusDb.VideoWatchedStatus videoWatchedStatus = PlaybackStatusDb.getVideoDownloadsDb().getVideoWatchedStatus(youTubeVideo);
-		Logger.d(this, "watched status for %s: %s", youTubeVideo.getTitle(), videoWatchedStatus.watched);
-
-		if (videoWatchedStatus.position > 0) {
-			videoPositionProgressBar.setVisibility(View.VISIBLE);
-			videoPositionProgressBar.setMax(youTubeVideo.getDurationInSeconds() * 1000);
-			videoPositionProgressBar.setProgress((int) videoWatchedStatus.position);
-		} else {
-			videoPositionProgressBar.setVisibility(View.INVISIBLE);
-		}
-
-		if (videoWatchedStatus.watched) {
-			videoWatchedTriangle.setVisibility(View.VISIBLE);
-		} else {
+		if(SkyTubeApp.getPreferenceManager().getBoolean(context.getString(R.string.pref_key_disable_playback_status), false)) {
 			videoWatchedTriangle.setVisibility(View.INVISIBLE);
+			videoPositionProgressBar.setVisibility(View.INVISIBLE);
+		} else {
+			// Reposition the videoWatchedTriangle so it appears directly below the bottom of titleTextView
+			titleTextView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+				@Override
+				public boolean onPreDraw() {
+					ViewGroup.MarginLayoutParams videoWatchedTriangleParams = (ViewGroup.MarginLayoutParams) videoWatchedTriangle.getLayoutParams();
+					videoWatchedTriangleParams.topMargin = titleTextView.getHeight();
+					videoWatchedTriangle.setLayoutParams(videoWatchedTriangleParams);
+					return true;
+				}
+			});
+
+			PlaybackStatusDb.VideoWatchedStatus videoWatchedStatus = PlaybackStatusDb.getVideoDownloadsDb().getVideoWatchedStatus(youTubeVideo);
+//		Logger.d(this, "watched status for %s: %s", youTubeVideo.getTitle(), videoWatchedStatus.watched);
+
+			if (videoWatchedStatus.position > 0) {
+				videoPositionProgressBar.setVisibility(View.VISIBLE);
+				videoPositionProgressBar.setMax(youTubeVideo.getDurationInSeconds() * 1000);
+				videoPositionProgressBar.setProgress((int) videoWatchedStatus.position);
+			} else {
+				videoPositionProgressBar.setVisibility(View.INVISIBLE);
+			}
+
+			if (videoWatchedStatus.watched) {
+				videoWatchedTriangle.setVisibility(View.VISIBLE);
+			} else {
+				videoWatchedTriangle.setVisibility(View.INVISIBLE);
+			}
 		}
 	}
 
@@ -199,7 +204,14 @@ class GridViewHolder extends RecyclerView.ViewHolder {
 		popupMenu.getMenuInflater().inflate(R.menu.video_options_menu, popupMenu.getMenu());
 		Menu menu = popupMenu.getMenu();
 		new IsVideoBookmarkedTask(youTubeVideo, menu).executeInParallel();
-		new IsVideoWatchedTask(youTubeVideo, menu).executeInParallel();
+
+		// If playback history is not disabled, see if this video has been watched. Otherwise, hide the "mark watched" & "mark unwatched" options from the menu.
+		if(!SkyTubeApp.getPreferenceManager().getBoolean(context.getString(R.string.pref_key_disable_playback_status), false)) {
+			new IsVideoWatchedTask(youTubeVideo, menu).executeInParallel();
+		} else {
+			popupMenu.getMenu().findItem(R.id.mark_watched).setVisible(false);
+			popupMenu.getMenu().findItem(R.id.mark_unwatched).setVisible(false);
+		}
 
 		if(youTubeVideo.isDownloaded()) {
 			popupMenu.getMenu().findItem(R.id.delete_download).setVisible(true);

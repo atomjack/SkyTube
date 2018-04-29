@@ -19,6 +19,18 @@ public class PrivacyPreferenceFragment extends PreferenceFragment implements Sha
 	}
 
 	@Override
+	public void onResume() {
+		super.onResume();
+		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+	}
+
+	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		if (key.equals(getString(R.string.pref_key_disable_search_history))) {
 			CheckBoxPreference disableSearchHistoryPreference = (CheckBoxPreference)findPreference(key);

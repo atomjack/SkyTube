@@ -261,8 +261,8 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment implements Yo
 			videoDescRatingsDisabledTextView.setVisibility(View.VISIBLE);
 		}
 
-		//
-		if(PlaybackStatusDb.getVideoDownloadsDb().getVideoWatchedStatus(youTubeVideo).position > 0) {
+
+		if(!SkyTubeApp.getPreferenceManager().getBoolean(getString(R.string.pref_key_disable_playback_status), false) && PlaybackStatusDb.getVideoDownloadsDb().getVideoWatchedStatus(youTubeVideo).position > 0) {
 			new AlertDialog.Builder(getActivity())
 				.setTitle(R.string.should_resume)
 				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
@@ -279,7 +279,6 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment implements Yo
 					}
 				})
 				.show();
-
 		} else {
 			loadVideo();
 		}
@@ -881,6 +880,9 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment implements Yo
 
 	@Override
 	public void videoPlaybackStopped() {
-		PlaybackStatusDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, player.getCurrentPosition());
+		player.stop();
+		if(!SkyTubeApp.getPreferenceManager().getBoolean(getString(R.string.pref_key_disable_playback_status), false)) {
+			PlaybackStatusDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, player.getCurrentPosition());
+		}
 	}
 }

@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import free.rm.skytube.R;
+import free.rm.skytube.businessobjects.db.PlaybackStatusDb;
 import free.rm.skytube.gui.businessobjects.adapters.VideoGridAdapter;
 import free.rm.skytube.gui.fragments.VideosGridFragment;
 
@@ -63,6 +64,10 @@ public abstract class BaseVideosGridFragment extends TabFragment implements Swip
 	public void onResume() {
 		super.onResume();
 		videoGridAdapter.refreshActiveGridViewHolder();
+		if(PlaybackStatusDb.isHasUpdated()) {
+			videoGridAdapter.notifyDataSetChanged();
+			PlaybackStatusDb.setHasUpdated(false);
+		}
 	}
 
 	/**

@@ -23,9 +23,11 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
+import android.view.MenuItem;
 
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
+import free.rm.skytube.businessobjects.Logger;
 import free.rm.skytube.businessobjects.interfaces.YouTubePlayerFragmentInterface;
 import free.rm.skytube.gui.businessobjects.BackButtonActivity;
 import free.rm.skytube.gui.businessobjects.fragments.FragmentEx;
@@ -121,5 +123,14 @@ public class YouTubePlayerActivity extends BackButtonActivity {
 	public void onBackPressed() {
 		fragmentListener.videoPlaybackStopped();
 		super.onBackPressed();
+	}
+
+	// If the back button in the toolbar is hit, save the video's progress (if playback history is not disabled)
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if(item.getItemId() == android.R.id.home) {
+			fragmentListener.videoPlaybackStopped();
+		}
+		return super.onOptionsItemSelected(item);
 	}
 }

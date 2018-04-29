@@ -5,8 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.google.api.services.youtube.YouTube;
-
 import java.util.HashMap;
 
 import free.rm.skytube.app.SkyTubeApp;
@@ -21,6 +19,7 @@ public class PlaybackStatusDb extends SQLiteOpenHelperEx {
 	private static HashMap<String, VideoWatchedStatus> playbackHistoryMap = null;
 
 	private static final int DATABASE_VERSION = 1;
+	private static boolean hasUpdated = false;
 	private static final String DATABASE_NAME = "playbackhistory.db";
 
 	public static synchronized PlaybackStatusDb getVideoDownloadsDb() {
@@ -42,6 +41,8 @@ public class PlaybackStatusDb extends SQLiteOpenHelperEx {
 
 	public void deleteAllPlaybackHistory() {
 		getWritableDatabase().delete(PlaybackStatusTable.TABLE_NAME, null, null);
+		playbackHistoryMap = null;
+		hasUpdated = true;
 	}
 
 	@Override
@@ -58,23 +59,24 @@ public class PlaybackStatusDb extends SQLiteOpenHelperEx {
 		if(playbackHistoryMap == null) {
 			Cursor cursor = getReadableDatabase().query(
 							PlaybackStatusTable.TABLE_NAME,
-							new String[]{PlaybackStatusTable.COL_YOUTUBE_VIDEO_POSITION, PlaybackStatusTable.COL_YOUTUBE_VIDEO_WATCHED},
+							new String[]{PlaybackStatusTable.COL_YOUTUBE_VIDEO_ID, PlaybackStatusTable.COL_YOUTUBE_VIDEO_POSITION, PlaybackStatusTable.COL_YOUTUBE_VIDEO_WATCHED},
 							null,
 							null, null, null, null);
 			playbackHistoryMap = new HashMap<>();
 			if(cursor.moveToFirst()) {
 				do {
+					String video_id = cursor.getString(cursor.getColumnIndex(PlaybackStatusTable.COL_YOUTUBE_VIDEO_ID));
 					int position = cursor.getInt(cursor.getColumnIndex(PlaybackStatusTable.COL_YOUTUBE_VIDEO_POSITION));
 					int finished = cursor.getInt(cursor.getColumnIndex(PlaybackStatusTable.COL_YOUTUBE_VIDEO_WATCHED));
 					VideoWatchedStatus status = new VideoWatchedStatus(position, finished == 1);
-					playbackHistoryMap.put(video.getId(), status);
+					playbackHistoryMap.put(video_id, status);
 				} while (cursor.moveToNext());
 			}
 			cursor.close();
 		}
-		// Requested video has no entry in the database, so create one in the Map. No need to create it in the Database yet - if needed,
-		// that will happen when video position is set
 		if(playbackHistoryMap.get(video.getId()) == null) {
+			// Requested video has no entry in the database, so create one in the Map. No need to create it in the Database yet - if needed,
+			// that will happen when video position is set
 			VideoWatchedStatus status = new VideoWatchedStatus();
 			playbackHistoryMap.put(video.getId(), status);
 		}
@@ -102,18 +104,25 @@ public class PlaybackStatusDb extends SQLiteOpenHelperEx {
 		playbackHistoryMap.get(video.getId()).watched = watched == 1;
 
 		boolean addSuccessful = getWritableDatabase().insertWithOnConflict(PlaybackStatusTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE) != -1;
+		if(addSuccessful)
+				hasUpdated = true;
+
 		return addSuccessful;
 	}
 
-	public void setVideoWatchedStatus(YouTubeVideo video, boolean watched) {
+	public boolean setVideoWatchedStatus(YouTubeVideo video, boolean watched) {
 		ContentValues values = new ContentValues();
 		values.put(PlaybackStatusTable.COL_YOUTUBE_VIDEO_ID, video.getId());
-		values.put(PlaybackStatusTable.COL_YOUTUBE_VIDEO_POSITION, playbackHistoryMap.get(video.getId()).position);
+		values.put(PlaybackStatusTable.COL_YOUTUBE_VIDEO_POSITION, 0);
 		values.put(PlaybackStatusTable.COL_YOUTUBE_VIDEO_WATCHED, watched ? 1 : 0);
 
 		playbackHistoryMap.get(video.getId()).watched = watched;
+		playbackHistoryMap.get(video.getId()).position = 0;
+
 		boolean success = getWritableDatabase().insertWithOnConflict(PlaybackStatusTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE) != -1;
-		Logger.d(this, "set result: %s", success);
+		if(success)
+			hasUpdated = true;
+		return success;
 	}
 
 	public class VideoWatchedStatus {
@@ -122,7 +131,21 @@ public class PlaybackStatusDb extends SQLiteOpenHelperEx {
 			this.position = position;
 			this.watched = watched;
 		}
+
+		@Override
+		public String toString() {
+			return String.format("Position: %d\nWatched: %s\n", position, watched);
+		}
+
 		public long position = 0;
 		public boolean watched = false;
+	}
+
+	public static boolean isHasUpdated() {
+		return hasUpdated;
+	}
+
+	public static void setHasUpdated(boolean hasUpdated) {
+		PlaybackStatusDb.hasUpdated = hasUpdated;
 	}
 }

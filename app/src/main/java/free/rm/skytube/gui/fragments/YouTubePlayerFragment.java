@@ -923,7 +923,10 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 
 	@Override
 	public void videoPlaybackStopped() {
-		Logger.d(this, "stopped: %d", videoView.getCurrentPosition());
-		PlaybackStatusDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, videoView.getCurrentPosition());
+		videoView.pause();
+		videoView.stopPlayback();
+		if(!SkyTubeApp.getPreferenceManager().getBoolean(getString(R.string.pref_key_disable_playback_status), false)) {
+			PlaybackStatusDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, videoView.getCurrentPosition());
+		}
 	}
 }

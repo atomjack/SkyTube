@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import free.rm.skytube.app.SkyTubeApp;
+import free.rm.skytube.businessobjects.Logger;
 
 /**
  * A database (DB) that stores user's searches (for use in Search Suggestions).
@@ -52,7 +53,8 @@ public class SearchHistoryDb extends SQLiteOpenHelperEx {
 	 * Delete all search history
 	 */
 	public void deleteAllSearchHistory() {
-		getWritableDatabase().delete(SearchHistoryTable.TABLE_NAME, null, null);
+		int deleted = getWritableDatabase().delete(SearchHistoryTable.TABLE_NAME, null, null);
+		Logger.d(this, "deleted history, rows: %d", deleted);
 	}
 
 
