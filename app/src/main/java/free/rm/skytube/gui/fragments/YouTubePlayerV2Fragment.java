@@ -35,7 +35,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -75,7 +74,7 @@ import free.rm.skytube.businessobjects.YouTube.Tasks.GetVideoDescriptionTask;
 import free.rm.skytube.businessobjects.YouTube.Tasks.GetYouTubeChannelInfoTask;
 import free.rm.skytube.businessobjects.YouTube.VideoStream.StreamMetaData;
 import free.rm.skytube.businessobjects.db.DownloadedVideosDb;
-import free.rm.skytube.businessobjects.db.PlaybackHistoryDb;
+import free.rm.skytube.businessobjects.db.PlaybackStatusDb;
 import free.rm.skytube.businessobjects.db.Tasks.CheckIfUserSubbedToChannelTask;
 import free.rm.skytube.businessobjects.db.Tasks.IsVideoBookmarkedTask;
 import free.rm.skytube.businessobjects.interfaces.GetDesiredStreamListener;
@@ -84,7 +83,6 @@ import free.rm.skytube.gui.activities.MainActivity;
 import free.rm.skytube.gui.activities.ThumbnailViewerActivity;
 import free.rm.skytube.gui.businessobjects.PlayerViewGestureDetector;
 import free.rm.skytube.gui.businessobjects.SubscribeButton;
-import free.rm.skytube.gui.businessobjects.YouTubePlayer;
 import free.rm.skytube.gui.businessobjects.adapters.CommentsAdapter;
 import free.rm.skytube.gui.businessobjects.fragments.ImmersiveModeFragment;
 import hollowsoft.slidingdrawer.OnDrawerOpenListener;
@@ -264,27 +262,27 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment implements Yo
 		}
 
 		//
-		if(PlaybackHistoryDb.getVideoDownloadsDb().getVideoPosition(youTubeVideo) > -1) {
-			/*
-			final AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
-				.setTitle(R.string.enter_video_url)
-				.setPositiveButton(R.string.play, new DialogInterface.OnClickListener() {
+		if(PlaybackStatusDb.getVideoDownloadsDb().getVideoWatchedStatus(youTubeVideo).position > 0) {
+			new AlertDialog.Builder(getActivity())
+				.setTitle(R.string.should_resume)
+				.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						// get the inputted URL string
-						final String videoUrl = ((EditText)((AlertDialog) dialog).findViewById(R.id.dialog_url_edittext)).getText().toString();
-
-						// play the video
-						YouTubePlayer.launch(videoUrl, getActivity());
+						playerInitialPosition = PlaybackStatusDb.getVideoDownloadsDb().getVideoWatchedStatus(youTubeVideo).position;
+						loadVideo();
 					}
 				})
-				.setNegativeButton(R.string.cancel, null)
+				.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i) {
+						loadVideo();
+					}
+				})
 				.show();
-				*/
-			playerInitialPosition = PlaybackHistoryDb.getVideoDownloadsDb().getVideoPosition(youTubeVideo);
-		}
 
-		loadVideo();
+		} else {
+			loadVideo();
+		}
 	}
 
 
@@ -883,7 +881,6 @@ public class YouTubePlayerV2Fragment extends ImmersiveModeFragment implements Yo
 
 	@Override
 	public void videoPlaybackStopped() {
-		Logger.d(this, "stopped: %d", player.getCurrentPosition());
-		PlaybackHistoryDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, player.getCurrentPosition());
+		PlaybackStatusDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, player.getCurrentPosition());
 	}
 }

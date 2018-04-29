@@ -26,7 +26,6 @@ import android.view.Menu;
 
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
-import free.rm.skytube.businessobjects.Logger;
 import free.rm.skytube.businessobjects.interfaces.YouTubePlayerFragmentInterface;
 import free.rm.skytube.gui.businessobjects.BackButtonActivity;
 import free.rm.skytube.gui.businessobjects.fragments.FragmentEx;
@@ -120,14 +119,7 @@ public class YouTubePlayerActivity extends BackButtonActivity {
 
 	@Override
 	public void onBackPressed() {
-		Logger.d(this, "on back pressed");
-		super.onBackPressed();
-	}
-
-	@Override
-	protected void onDestroy() {
-		Logger.d(this, "onDestroy");
 		fragmentListener.videoPlaybackStopped();
-		super.onDestroy();
+		super.onBackPressed();
 	}
 }

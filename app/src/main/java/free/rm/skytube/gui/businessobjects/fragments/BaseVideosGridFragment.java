@@ -59,6 +59,11 @@ public abstract class BaseVideosGridFragment extends TabFragment implements Swip
 		videoGridAdapter.refresh(true);
 	}
 
+	@Override
+	public void onResume() {
+		super.onResume();
+		videoGridAdapter.refreshActiveGridViewHolder();
+	}
 
 	/**
 	 * Set the layout resource (e.g. Subscriptions resource layout, R.id.grid_view, ...etc).

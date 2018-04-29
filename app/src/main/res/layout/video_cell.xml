@@ -7,12 +7,39 @@
 	android:layout_height="wrap_content"
 	android:layout_margin="2dp">
 
-	<ImageView
-		android:id="@+id/thumbnail_image_view"
+	<FrameLayout
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:adjustViewBounds="true"
-		android:src="@drawable/thumbnail_default"/>
+		android:layout_height="wrap_content">
+		<RelativeLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
+
+
+			<ImageView
+				android:id="@+id/thumbnail_image_view"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:adjustViewBounds="true"
+				android:src="@drawable/thumbnail_default"/>
+
+			<TextView
+				android:id="@+id/video_watched_triangle"
+				android:layout_width="40dp"
+				android:layout_height="60dp"
+				android:layout_alignParentRight="true"
+				android:background="@drawable/video_watched"
+				android:visibility="invisible"/>
+		</RelativeLayout>
+	</FrameLayout>
+	<ProgressBar
+		android:id="@+id/video_position_progress_bar"
+		style="?android:attr/progressBarStyleHorizontal"
+		android:layout_width="match_parent"
+		android:layout_height="4dp"
+		android:progressDrawable="@drawable/video_position_progress_bar"
+		android:visibility="invisible"
+		app:layout_constraintBottom_toTopOf="@id/channel_layout"
+		app:layout_constraintStart_toStartOf="parent"/>
 
 	<TextView
 		android:id="@+id/title_text_view"

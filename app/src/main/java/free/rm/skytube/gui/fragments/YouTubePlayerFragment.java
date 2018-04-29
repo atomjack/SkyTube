@@ -46,7 +46,7 @@ import free.rm.skytube.businessobjects.YouTube.Tasks.GetVideoDescriptionTask;
 import free.rm.skytube.businessobjects.YouTube.Tasks.GetYouTubeChannelInfoTask;
 import free.rm.skytube.businessobjects.YouTube.VideoStream.StreamMetaData;
 import free.rm.skytube.businessobjects.db.DownloadedVideosDb;
-import free.rm.skytube.businessobjects.db.PlaybackHistoryDb;
+import free.rm.skytube.businessobjects.db.PlaybackStatusDb;
 import free.rm.skytube.businessobjects.db.Tasks.CheckIfUserSubbedToChannelTask;
 import free.rm.skytube.businessobjects.db.Tasks.IsVideoBookmarkedTask;
 import free.rm.skytube.businessobjects.interfaces.GetDesiredStreamListener;
@@ -924,6 +924,6 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 	@Override
 	public void videoPlaybackStopped() {
 		Logger.d(this, "stopped: %d", videoView.getCurrentPosition());
-		PlaybackHistoryDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, videoView.getCurrentPosition());
+		PlaybackStatusDb.getVideoDownloadsDb().setVideoPosition(youTubeVideo, videoView.getCurrentPosition());
 	}
 }
