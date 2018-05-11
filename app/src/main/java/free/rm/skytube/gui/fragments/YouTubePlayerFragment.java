@@ -15,15 +15,10 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +28,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import free.rm.skytube.R;
@@ -50,58 +46,29 @@ import free.rm.skytube.businessobjects.db.Tasks.CheckIfUserSubbedToChannelTask;
 import free.rm.skytube.businessobjects.db.Tasks.IsVideoBookmarkedTask;
 import free.rm.skytube.businessobjects.interfaces.GetDesiredStreamListener;
 import free.rm.skytube.gui.activities.MainActivity;
-import free.rm.skytube.gui.activities.ThumbnailViewerActivity;
 import free.rm.skytube.gui.businessobjects.MediaControllerEx;
 import free.rm.skytube.gui.businessobjects.OnSwipeTouchListener;
-import free.rm.skytube.gui.businessobjects.SubscribeButton;
 import free.rm.skytube.gui.businessobjects.YouTubeVideoListener;
 import free.rm.skytube.gui.businessobjects.adapters.CommentsAdapter;
-import free.rm.skytube.gui.businessobjects.fragments.ImmersiveModeFragment;
 import hollowsoft.slidingdrawer.OnDrawerOpenListener;
-import hollowsoft.slidingdrawer.SlidingDrawer;
 
 /**
  * A fragment that holds a standalone YouTube player.
  */
-public class YouTubePlayerFragment extends ImmersiveModeFragment implements MediaPlayer.OnPreparedListener, YouTubeVideoListener {
-
-	public static final String YOUTUBE_VIDEO_OBJ = "YouTubePlayerFragment.yt_video_obj";
-
-	private YouTubeVideo		youTubeVideo = null;
-	private YouTubeChannel		youTubeChannel = null;
-
+public class YouTubePlayerFragment extends YouTubePlayerBaseFragment implements MediaPlayer.OnPreparedListener, YouTubeVideoListener {
 	private VideoView			videoView = null;
 	/** The current video position (i.e. play time). */
 	private int					videoCurrentPosition = 0;
 	private MediaControllerEx	mediaController = null;
 
-	private TextView			videoDescTitleTextView = null;
-	private ImageView			videoDescChannelThumbnailImageView = null;
-	private TextView			videoDescChannelTextView = null;
-	private SubscribeButton		videoDescSubscribeButton = null;
-	private TextView			videoDescViewsTextView = null;
-	private ProgressBar			videoDescLikesBar = null;
-	private TextView			videoDescLikesTextView = null;
-	private TextView			videoDescDislikesTextView = null;
-	private View                videoDescRatingsDisabledTextView = null;
-	private TextView			videoDescPublishDateTextView = null;
-	private TextView			videoDescriptionTextView = null;
-	private RelativeLayout      voidView = null;
 	private ImageView           indicatorImageView = null;
 	private TextView            indicatorTextView = null;
 	private RelativeLayout      indicatorView = null;
-	private View				loadingVideoView = null;
 
-	private SlidingDrawer		videoDescriptionDrawer = null;
 	private View                videoDescriptionDrawerIconView = null;
-	private SlidingDrawer		commentsDrawer = null;
-	private View                commentsDrawerIconView = null;
-	private View				commentsProgressBar = null,
-								noVideoCommentsView = null;
-	private CommentsAdapter		commentsAdapter = null;
-	private ExpandableListView	commentsExpandableListView = null;
 
-	private Menu                menu = null;
+	private View                commentsDrawerIconView = null;
+
 
 	private Handler             hideHudTimerHandler = null;
 	private Handler             hideVideoDescAndCommentsIconsTimerHandler = null;
@@ -139,26 +106,25 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 		if (savedInstanceState != null)
 			videoCurrentPosition = savedInstanceState.getInt(VIDEO_CURRENT_POSITION, 0);
 
-		if (youTubeVideo == null) {
-			// initialise the views
-			initViews(view);
+		// initialise the views
+		initViews(view);
 
-			// hide action bar
-			getSupportActionBar().hide();
+		// hide action bar
+		getSupportActionBar().hide();
 
-			// get which video we need to play...
-			Bundle bundle = getActivity().getIntent().getExtras();
-			if (bundle != null  &&  bundle.getSerializable(YOUTUBE_VIDEO_OBJ) != null) {
-				// ... either the video details are passed through the previous activity
-				youTubeVideo = (YouTubeVideo) bundle.getSerializable(YOUTUBE_VIDEO_OBJ);
-				setUpHUDAndPlayVideo();
+		// get which video we need to play...
+		Bundle bundle = getActivity().getIntent().getExtras();
+		if (bundle != null  &&  bundle.getSerializable(YOUTUBE_VIDEO_OBJ) != null) {
+			// ... either the video details are passed through the previous activity
+			currentVideoIndex = bundle.getInt(YOUTUBE_VIDEO_INDEX);
+			videoList = (ArrayList<YouTubeVideo>)bundle.getSerializable(YOUTUBE_VIDEO_LIST);
+			setUpHUD(videoList.get(currentVideoIndex));
+			loadVideos();
 
-				getVideoInfoTasks();
-			} else {
-				// ... or the video URL is passed to SkyTube via another Android app
-				new GetVideoDetailsTask(getUrlFromIntent(getActivity().getIntent()), this).executeInParallel();
-			}
-
+			getVideoInfoTasks();
+		} else {
+			// ... or the video URL is passed to SkyTube via another Android app
+			new GetVideoDetailsTask(getUrlFromIntent(getActivity().getIntent()), this).executeInParallel();
 		}
 
 		return view;
@@ -180,7 +146,7 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 			public boolean onError(MediaPlayer mp, int what, int extra) {
 				String msg = String.format(Locale.getDefault(),
 						"Error has occurred while playing video, url='%s', what=%d, extra=%d",
-						youTubeVideo != null ? youTubeVideo.getVideoUrl() : "null",
+						videoList.get(currentVideoIndex) != null ? videoList.get(currentVideoIndex).getVideoUrl() : "null",
 						what,
 						extra);
 				Log.e(TAG, msg);
@@ -396,7 +362,7 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 			@Override
 			public void onDrawerOpened() {
 				if (commentsAdapter == null) {
-					commentsAdapter = new CommentsAdapter(getActivity(), youTubeVideo.getId(), commentsExpandableListView, commentsProgressBar, noVideoCommentsView);
+					commentsAdapter = new CommentsAdapter(getActivity(), videoList.get(currentVideoIndex).getId(), commentsExpandableListView, commentsProgressBar, noVideoCommentsView);
 				}
 			}
 		});
@@ -430,39 +396,12 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 										.into(videoDescChannelThumbnailImageView);
 				}
 			}
-		}).executeInParallel(youTubeVideo.getChannelId());
+		}).executeInParallel(videoList.get(currentVideoIndex).getChannelId());
 
 		// check if the user has subscribed to a channel... if he has, then change the state of
 		// the subscribe button
-		new CheckIfUserSubbedToChannelTask(videoDescSubscribeButton, youTubeVideo.getChannelId()).execute();
+		new CheckIfUserSubbedToChannelTask(videoDescSubscribeButton, videoList.get(currentVideoIndex).getChannelId()).execute();
 	}
-
-
-	/**
-	 * Will setup the HUD's details according to the contents of {@link #youTubeVideo}.  Then it
-	 * will try to load and play the video.
-	 */
-	private void setUpHUDAndPlayVideo() {
-		videoDescTitleTextView.setText(youTubeVideo.getTitle());
-		videoDescChannelTextView.setText(youTubeVideo.getChannelName());
-		videoDescViewsTextView.setText(youTubeVideo.getViewsCount());
-		videoDescPublishDateTextView.setText(youTubeVideo.getPublishDatePretty());
-
-		if (youTubeVideo.isThumbsUpPercentageSet()) {
-			videoDescLikesTextView.setText(youTubeVideo.getLikeCount());
-			videoDescDislikesTextView.setText(youTubeVideo.getDislikeCount());
-			videoDescLikesBar.setProgress(youTubeVideo.getThumbsUpPercentage());
-		} else {
-			videoDescLikesTextView.setVisibility(View.GONE);
-			videoDescDislikesTextView.setVisibility(View.GONE);
-			videoDescLikesBar.setVisibility(View.GONE);
-			videoDescRatingsDisabledTextView.setVisibility(View.VISIBLE);
-		}
-
-		// load the video
-		loadVideo();
-	}
-
 
 
 	@Override
@@ -571,7 +510,7 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 	private void showHud() {
 		if (!isHudVisible()) {
 			getSupportActionBar().show();
-			getSupportActionBar().setTitle(youTubeVideo != null ? youTubeVideo.getTitle() : "");
+			getSupportActionBar().setTitle(videoList.get(currentVideoIndex) != null ? videoList.get(currentVideoIndex).getTitle() : "");
 			mediaController.show(0);
 
 			videoDescriptionDrawer.close();
@@ -655,113 +594,35 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 		return durationValue;
 	}
 
-	@Override
-	public void onPrepareOptionsMenu(Menu menu) {
-		// Hide the download video option if mobile downloads are not allowed and the device is connected through mobile, and the video isn't already downloaded
-		boolean allowDownloadsOnMobile = SkyTubeApp.getPreferenceManager().getBoolean(SkyTubeApp.getStr(R.string.pref_key_allow_mobile_downloads), false);
-		if((youTubeVideo != null && !youTubeVideo.isDownloaded()) && (SkyTubeApp.isConnectedToWiFi() || (SkyTubeApp.isConnectedToMobile() && allowDownloadsOnMobile))) {
-			menu.findItem(R.id.download_video).setVisible(true);
-		} else {
-			menu.findItem(R.id.download_video).setVisible(false);
-		}
+	protected void stop() {
+		videoView.pause();
 	}
-
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.menu_youtube_player, menu);
-
-		this.menu = menu;
-
-		// Will now check if the video is bookmarked or not (and then update the menu accordingly).
-		//
-		// youTubeVideo might be null if we have only passed the video URL to this fragment (i.e.
-		// the app is still trying to construct youTubeVideo in the background).
-		if (youTubeVideo != null)
-			new IsVideoBookmarkedTask(youTubeVideo, menu).executeInParallel();
-	}
-
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.menu_reload_video:
-				loadVideo();
-				return true;
-
-			case R.id.menu_open_video_with:
-				playVideoExternally();
-				videoView.pause();
-				return true;
-
-			case R.id.share:
-				youTubeVideo.shareVideo(getContext());
-				return true;
-
-			case R.id.copyurl:
-				youTubeVideo.copyUrl(getContext());
-				return true;
-
-			case R.id.bookmark_video:
-				youTubeVideo.bookmarkVideo(getContext(), menu);
-				return true;
-
-			case R.id.unbookmark_video:
-				youTubeVideo.unbookmarkVideo(getContext(), menu);
-				return true;
-
-			case R.id.view_thumbnail:
-				Intent i = new Intent(getActivity(), ThumbnailViewerActivity.class);
-				i.putExtra(ThumbnailViewerActivity.YOUTUBE_VIDEO, youTubeVideo);
-				startActivity(i);
-				return true;
-
-			case R.id.download_video:
-				youTubeVideo.downloadVideo(getContext());
-				return true;
-
-            case R.id.block_channel:
-                youTubeVideo.blockChannel(getContext());
-
-			default:
-				return super.onOptionsItemSelected(item);
-		}
-	}
-
 
 	/**
-	 * Play the video using an external app
+	 * Loads the video specified in {@link #videoList} at {@link #currentVideoIndex}
 	 */
-	private void playVideoExternally() {
-		Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(youTubeVideo.getVideoUrl()));
-		startActivity(browserIntent);
-	}
-
-
-	/**
-	 * Loads the video specified in {@link #youTubeVideo}.
-	 */
-	private void loadVideo() {
+	protected void loadVideos() {
 		// if the video is NOT live
-		if (!youTubeVideo.isLiveStream()) {
+		if (!videoList.get(currentVideoIndex).isLiveStream()) {
 			videoView.pause();
 			videoView.stopPlayback();
 			loadingVideoView.setVisibility(View.VISIBLE);
-			if(youTubeVideo.isDownloaded()) {
-				Uri uri = youTubeVideo.getFileUri();
+			if(videoList.get(currentVideoIndex).isDownloaded()) {
+				Uri uri = videoList.get(currentVideoIndex).getFileUri();
 				File file = new File(uri.getPath());
 				// If the file for this video has gone missing, remove it from the Database and then play remotely.
 				if(!file.exists()) {
-					DownloadedVideosDb.getVideoDownloadsDb().remove(youTubeVideo);
+					DownloadedVideosDb.getVideoDownloadsDb().remove(videoList.get(currentVideoIndex));
 					Toast.makeText(getContext(),
 									getContext().getString(R.string.playing_video_file_missing),
 									Toast.LENGTH_LONG).show();
-					loadVideo();
+					loadVideos();
 				} else {
-					Logger.i(YouTubePlayerFragment.this, ">> PLAYING LOCALLY: %s", youTubeVideo);
+					Logger.i(YouTubePlayerFragment.this, ">> PLAYING LOCALLY: %s", videoList.get(currentVideoIndex));
 					videoView.setVideoURI(uri);
 				}
 			} else {
-				youTubeVideo.getDesiredStream(new GetDesiredStreamListener() {
+				videoList.get(currentVideoIndex).getDesiredStream(new GetDesiredStreamListener() {
 					@Override
 					public void onGetDesiredStream(StreamMetaData desiredStream) {
 						// play the video
@@ -789,7 +650,7 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 			}
 
 			// get the video description
-			new GetVideoDescriptionTask(youTubeVideo, new GetVideoDescriptionTask.GetVideoDescriptionTaskListener() {
+			new GetVideoDescriptionTask(videoList.get(currentVideoIndex), new GetVideoDescriptionTask.GetVideoDescriptionTaskListener() {
 				@Override
 				public void onFinished(String description) {
 					videoDescriptionTextView.setText(description);
@@ -882,10 +743,13 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 			// close the video player activity
 			closeActivity();
 		} else {
-			YouTubePlayerFragment.this.youTubeVideo = youTubeVideo;
+			videoList = new ArrayList<>();
+			videoList.add(youTubeVideo);
+			currentVideoIndex = 0;
 
 			// setup the HUD and play the video
-			setUpHUDAndPlayVideo();
+			setUpHUD(youTubeVideo);
+			loadVideos();
 
 			getVideoInfoTasks();
 
@@ -897,18 +761,5 @@ public class YouTubePlayerFragment extends ImmersiveModeFragment implements Medi
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * The video URL is passed to SkyTube via another Android app (i.e. via an intent).
-	 *
-	 * @return The URL of the YouTube video the user wants to play.
-	 */
-	private String getUrlFromIntent(final Intent intent) {
-		String url = null;
 
-		if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
-			url = intent.getData().toString();
-		}
-
-		return url;
-	}
 }

@@ -33,7 +33,7 @@ import free.rm.skytube.gui.fragments.YouTubePlayerV2Fragment;
 
 /**
  * An {@link Activity} that contains an instance of
- * {@link free.rm.skytube.gui.fragments.YouTubePlayerFragment}.
+ * {@link YouTubePlayerFragment}.
  */
 public class YouTubePlayerActivity extends BackButtonActivity {
 

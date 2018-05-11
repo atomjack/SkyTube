@@ -31,7 +31,6 @@ import free.rm.skytube.app.SkyTubeApp;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeAPIKey;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeVideo;
 import free.rm.skytube.gui.activities.YouTubePlayerActivity;
-import free.rm.skytube.gui.fragments.YouTubePlayerFragment;
 
 /**
  * Launches YouTube player.
