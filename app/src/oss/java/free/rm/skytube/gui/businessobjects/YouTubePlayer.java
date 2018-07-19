@@ -21,8 +21,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeVideo;
 import free.rm.skytube.gui.activities.YouTubePlayerActivity;
+import free.rm.skytube.gui.fragments.YouTubePlayerBaseFragment;
 import free.rm.skytube.gui.fragments.YouTubePlayerFragment;
 
 /**
@@ -37,9 +41,10 @@ public class YouTubePlayer {
 	 *
 	 * @param youTubeVideo Video to be viewed.
 	 */
-	public static void launch(YouTubeVideo youTubeVideo, Context context) {
+	public static void launch(List<YouTubeVideo> videoList, int videoIndex, Context context) {
 		Intent i = new Intent(context, YouTubePlayerActivity.class);
-		i.putExtra(YouTubePlayerFragment.YOUTUBE_VIDEO_OBJ, youTubeVideo);
+		i.putExtra(YouTubePlayerBaseFragment.YOUTUBE_VIDEO_INDEX, videoIndex);
+		i.putExtra(YouTubePlayerBaseFragment.YOUTUBE_VIDEO_LIST, (ArrayList<YouTubeVideo>)videoList);
 		context.startActivity(i);
 	}
 

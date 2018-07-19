@@ -32,6 +32,8 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
+import java.util.List;
+
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeVideo;
@@ -70,8 +72,9 @@ class GridViewHolder extends RecyclerView.ViewHolder {
 	 * @param listener          MainActivity listener.
 	 * @param showChannelInfo   True to display channel information (e.g. channel name) and allows
 	 *                          user to open and browse the channel; false to hide such information.
+	 * @param videoList					List of {@link YouTubeVideo}'s that were part of the grid, so that the player can play previous/next videos
 	 */
-	GridViewHolder(View view, MainActivityListener listener, boolean showChannelInfo) {
+	GridViewHolder(View view, MainActivityListener listener, boolean showChannelInfo, final List<YouTubeVideo> videoList) {
 		super(view);
 
 		titleTextView = view.findViewById(R.id.title_text_view);
@@ -92,7 +95,18 @@ class GridViewHolder extends RecyclerView.ViewHolder {
 				if (youTubeVideo != null) {
 					if(gridViewHolderListener != null)
 						gridViewHolderListener.onClick();
-					YouTubePlayer.launch(youTubeVideo, context);
+
+					// Get the index of this video from the videoList, to be passed to the YouTubePlayer.
+					int index = -1;
+					for(int i=0;i<videoList.size();i++) {
+						if(videoList.get(i).getId().equals(youTubeVideo.getId())) {
+							index = i;
+							break;
+						}
+					}
+					if(index > -1) {
+						YouTubePlayer.launch(videoList, index, context);
+					}
 				}
 			}
 		});

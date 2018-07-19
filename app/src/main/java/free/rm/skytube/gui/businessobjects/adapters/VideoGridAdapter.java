@@ -146,7 +146,7 @@ public class VideoGridAdapter extends RecyclerViewAdapterEx<YouTubeVideo, GridVi
 	@Override
 	public GridViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.video_cell, parent, false);
-		final GridViewHolder gridViewHolder = new GridViewHolder(v, listener, showChannelInfo);
+		final GridViewHolder gridViewHolder = new GridViewHolder(v, listener, showChannelInfo, getList());
 		gridViewHolder.setGridViewHolderListener(new GridViewHolder.GridViewHolderListener() {
 			@Override
 			public void onClick() {

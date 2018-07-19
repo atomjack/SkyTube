@@ -118,7 +118,8 @@ public class YouTubePlayer {
 	 */
 	public static void launchCustomYouTubePlayer(YouTubeVideo youTubeVideo, Context context) {
 		Intent i = new Intent(context, YouTubePlayerActivity.class);
-		i.putExtra(YouTubePlayerFragment.YOUTUBE_VIDEO_OBJ, youTubeVideo);
+		i.putExtra(YouTubePlayerBaseFragment.YOUTUBE_VIDEO_INDEX, videoIndex);
+		i.putExtra(YouTubePlayerBaseFragment.YOUTUBE_VIDEO_LIST, (ArrayList<YouTubeVideo>)videoList);
 		context.startActivity(i);
 	}
 

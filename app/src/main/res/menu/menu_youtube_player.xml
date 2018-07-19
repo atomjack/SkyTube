@@ -7,6 +7,11 @@
 		  android:icon="@drawable/ic_menu_reload_video"
 		  app:showAsAction="ifRoom"/>
 
+	<item android:id="@+id/play_next_video"
+		  android:title="@string/play_next_video"
+		  android:checkable="true"
+		  app:showAsAction="never"/>
+
 	<item android:id="@+id/menu_open_video_with"
 		  android:title="@string/open_with"
 		  app:showAsAction="never"/>
