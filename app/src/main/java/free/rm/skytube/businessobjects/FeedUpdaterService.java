@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import androidx.core.app.NotificationCompat;
 
@@ -25,14 +26,22 @@ import free.rm.skytube.gui.activities.MainActivity;
  * the Service will create a notification.
  */
 public class FeedUpdaterService extends Service implements GetSubscriptionVideosTaskListener {
+	private final IBinder binder = new FeedUpdaterBinder();
 	private GetSubscriptionVideosTask getSubscriptionVideosTask;
+
 	private int newVideosFetched;
 
 	public static final String NEW_SUBSCRIPTION_VIDEOS_FOUND = "FeedUpdaterService.NEW_SUBSCRIPTION_VIDEOS_FOUND";
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return null;
+		return binder;
+	}
+
+	public class FeedUpdaterBinder extends Binder {
+		public FeedUpdaterService getService() {
+			return FeedUpdaterService.this;
+		}
 	}
 
 	@Override

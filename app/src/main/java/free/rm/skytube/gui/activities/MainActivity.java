@@ -19,9 +19,10 @@ package free.rm.skytube.gui.activities;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -30,6 +31,8 @@ import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+
+import android.os.IBinder;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -49,6 +52,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
+import free.rm.skytube.businessobjects.FeedUpdaterService;
 import free.rm.skytube.businessobjects.Logger;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubeChannel;
 import free.rm.skytube.businessobjects.YouTube.POJOs.YouTubePlaylist;
@@ -99,6 +103,9 @@ public class MainActivity extends BaseActivity {
 	private static final String CHANNEL_BROWSER_FRAGMENT = "MainActivity.ChannelBrowserFragment";
 	private static final String PLAYLIST_VIDEOS_FRAGMENT = "MainActivity.PlaylistVideosFragment";
 	private static final String VIDEO_BLOCKER_PLUGIN = "MainActivity.VideoBlockerPlugin";
+
+	FeedUpdaterService feedUpdaterService;
+	boolean feedUpdaterBound = false;
 
 
 	@Override
@@ -543,4 +550,17 @@ public class MainActivity extends BaseActivity {
 		SubscriptionsFeedFragment.unsetFlag(SubscriptionsFeedFragment.FLAG_REFRESH_FEED_FROM_CACHE);
 		mainFragment.getSubscriptionsFeedFragment().refreshFeedFromCache();
 	}
+
+	private ServiceConnection feedUpdaterConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			FeedUpdaterService.FeedUpdaterBinder binder = (FeedUpdaterService.FeedUpdaterBinder) service;
+			feedUpdaterService = binder.getService();
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			feedUpdaterBound = false;
+		}
+	};
 }

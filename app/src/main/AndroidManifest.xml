@@ -62,19 +62,19 @@
 			android:theme="@style/NoActionBarActivityTheme">
 		</activity>
 
-		<!--<service android:name=".businessobjects.FeedUpdaterService"/>-->
+		<service android:name=".businessobjects.FeedUpdaterService"/>
 
-		<!--<receiver-->
-			<!--android:name=".businessobjects.FeedUpdaterSetupReceiver"-->
-			<!--android:enabled="true">-->
-			<!--<intent-filter>-->
-				<!--<action android:name="android.intent.action.BOOT_COMPLETED"/>-->
-			<!--</intent-filter>-->
-		<!--</receiver>-->
-		<!--<receiver-->
-			<!--android:name=".businessobjects.FeedUpdaterReceiver"-->
-			<!--android:enabled="true">-->
-		<!--</receiver>-->
+		<receiver
+			android:name=".businessobjects.FeedUpdaterSetupReceiver"
+			android:enabled="true">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED"/>
+			</intent-filter>
+		</receiver>
+		<receiver
+			android:name=".businessobjects.FeedUpdaterReceiver"
+			android:enabled="true">
+		</receiver>
 
 		<activity
 			android:name=".gui.activities.PermissionsActivity"

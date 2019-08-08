@@ -18,21 +18,23 @@
 package free.rm.skytube.gui.fragments;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-
-import org.joda.time.DateTime;
 
 import java.util.List;
 
@@ -178,6 +180,10 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Get
 		return SkyTubeApp.getPreferenceManager().getBoolean(flag, false);
 	}
 
+	private void showRefreshNotification() {
+
+	}
+
 
 	private void showRefreshDialog() {
 		progressDialog = new MaterialDialog.Builder(getActivity())
@@ -195,7 +201,7 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Get
 	@Override
 	public void onRefresh() {
 		shouldRefresh = true;
-		new RefreshFeedTask(true).executeInParallel();
+//		new RefreshFeedTask(true).executeInParallel();
 	}
 
 
@@ -391,5 +397,4 @@ public class SubscriptionsFeedFragment extends VideosGridFragment implements Get
 		}
 
 	}
-
 }
