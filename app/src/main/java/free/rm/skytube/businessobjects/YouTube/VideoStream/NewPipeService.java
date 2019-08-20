@@ -16,13 +16,6 @@
  */
 package free.rm.skytube.businessobjects.YouTube.VideoStream;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document.OutputSettings;
 import org.jsoup.safety.Whitelist;
@@ -42,6 +35,16 @@ import org.schabi.newpipe.extractor.stream.StreamExtractor;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.VideoStream;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import free.rm.skytube.R;
 import free.rm.skytube.app.SkyTubeApp;
@@ -193,6 +196,29 @@ public class NewPipeService {
     }
 
     private long getPublishDate(String dateStr) throws ParseException {
+        Pattern pattern = Pattern.compile("^(\\d+) (hours?|weeks?|months?|years?|decades?) ago$");
+        Matcher m = pattern.matcher(dateStr);
+        if(m.find()) {
+            int num = Integer.parseInt(m.group(1));
+            String time = m.group(2);
+            Calendar calendar = Calendar.getInstance();
+
+            if(time.startsWith("hour") ) {
+                calendar.add(Calendar.HOUR, num * -1);
+            } else if(time.startsWith("week")) {
+                calendar.add(Calendar.WEEK_OF_YEAR, num * -1);
+            } else if(time.startsWith("month")) {
+                calendar.add(Calendar.MONTH, num * -1);
+            } else if(time.startsWith("year")) {
+                calendar.add(Calendar.YEAR, num * -1);
+            } else if(time.startsWith("decade")) {
+                calendar.add(Calendar.YEAR, num * -10);
+            }
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            format.setCalendar(calendar);
+
+            return calendar.getTimeInMillis();
+        }
         Date publishDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
         // TODO: publish date is not accurate - as only date precision is available
         // So it's more convenient, if the upload date happened in this day, we just assume, that it happened a minute
