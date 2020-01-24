@@ -609,7 +609,7 @@ public class SubscriptionsDb extends SQLiteOpenHelperEx {
             SubscriptionsVideosTable.TABLE_NAME,
             SubscriptionsVideosTable.ALL_COLUMNS_FOR_EXTRACT,
             selection, selectionArguments, null, null,
-            SubscriptionsVideosTable.COL_RETRIEVAL_TS + " DESC, " + SubscriptionsVideosTable.COL_YOUTUBE_VIDEO_ID + " ASC",
+            SubscriptionsVideosTable.COL_PUBLISH_TS + " DESC, " + SubscriptionsVideosTable.COL_YOUTUBE_VIDEO_ID + " ASC",
             String.valueOf(limit));
         return extractVideos(cursor, true);
     }
